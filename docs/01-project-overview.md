@@ -52,13 +52,23 @@
 
 ## 6. 기술 스택
 
-- **프레임워크:** Vite + React
-- **언어:** TypeScript
-- **스타일링:** Tailwind CSS
-- **상태 관리:** Zustand
-- **UI:** Stitch로 직접 구현
-- **API 통신:** 추후 결정
+| 분류              | 기술          |
+| ----------------- | ------------- |
+| **프레임워크**    | Vite + React  |
+| **언어**          | TypeScript    |
+| **스타일링**      | Tailwind CSS  |
+| **상태 관리**     | Zustand       |
+| **API 통신**      | Fetch API     |
+| **UI 프로토타입** | Google Stitch |
 
-## 7. 일정
+## 7. 개발 환경
+
+| 항목             | 도구                |
+| ---------------- | ------------------- |
+| **IDE**          | VS Code             |
+| **AI Assistant** | GitHub Copilot Chat |
+| **방법론**       | Harness Engineering |
+
+## 8. 일정
 
 시간 되는 대로 틈틈이 진행
