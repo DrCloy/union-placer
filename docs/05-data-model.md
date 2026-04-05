@@ -78,16 +78,16 @@ interface UnionBoard {
 
 ### 2.4 내부 구역 모양
 
-| (방향별)방향 | 직각 위치   | 모양 |
-| ------------ | ----------- | ---- |
-| 1시          | 왼쪽 위     | ◤    |
-| 2시          | 오른쪽 아래 | ◢    |
-| 4시          | 오른쪽 위   | ◥    |
-| 5시          | 왼쪽 아래   | ◣    |
-| 7시          | 오른쪽 아래 | ◢    |
-| 8시          | 왼쪽 위     | ◤    |
-| 10시         | 왼쪽 아래   | ◣    |
-| 11시         | 오른쪽 위   | ◥    |
+| 방향 | 직각 위치   | 모양 |
+| ---- | ----------- | ---- |
+| 1시  | 왼쪽 위     | ◤    |
+| 2시  | 오른쪽 아래 | ◢    |
+| 4시  | 오른쪽 위   | ◥    |
+| 5시  | 왼쪽 아래   | ◣    |
+| 7시  | 오른쪽 아래 | ◢    |
+| 8시  | 왼쪽 위     | ◤    |
+| 10시 | 왼쪽 아래   | ◣    |
+| 11시 | 오른쪽 위   | ◥    |
 
 ```text
         ◥11시  1시◤
@@ -103,9 +103,9 @@ interface UnionBoard {
 ```typescript
 interface OuterRegion {
   id: OuterRegionId;
-  direction: Direction; // 1시, 2시, 4시, 5시, 7시, 8시, 10시, 11시
-  cells: [number, number][]; // 해당 영역의 좌표 목록
-  cellCount: 40;
+  direction: Direction;
+  cells: [number, number][];
+  maxCells: 40;
   stat: OuterStat;
 }
 
@@ -115,7 +115,7 @@ type OuterStat =
   | "exp" // 획득 경험치
   | "critRate" // 크리티컬 확률
   | "bossDamage" // 보스 데미지
-  | "damage" // 일반 데미지
+  | "normalDamage" // 일반 데미지
   | "buffDuration" // 버프 지속시간
   | "ignoreDefense" // 방어율 무시
   | "critDamage" // 크리티컬 데미지
@@ -124,16 +124,16 @@ type OuterStat =
 
 ### 외부 스탯 목록
 
-| 방향 | 스탯            |
-| ---- | --------------- |
-| 1시  | 획득 경험치     |
-| 2시  | 크리티컬 확률   |
-| 4시  | 보스 데미지     |
-| 5시  | 일반 데미지     |
-| 7시  | 버프 지속시간   |
-| 8시  | 방어율 무시     |
-| 10시 | 크리티컬 데미지 |
-| 11시 | 상태이상 내성   |
+| 방향 | 스탯            | 최대 칸 수 |
+| ---- | --------------- | ---------- |
+| 1시  | 획득 경험치     | 40         |
+| 2시  | 크리티컬 확률   | 40         |
+| 4시  | 보스 데미지     | 40         |
+| 5시  | 일반 데미지     | 40         |
+| 7시  | 버프 지속시간   | 40         |
+| 8시  | 방어율 무시     | 40         |
+| 10시 | 크리티컬 데미지 | 40         |
+| 11시 | 상태이상 내성   | 40         |
 
 ### 3.2 내부 영역 (교환 가능)
 
@@ -142,7 +142,7 @@ interface InnerRegion {
   id: InnerRegionId;
   direction: Direction;
   cells: [number, number][];
-  cellCount: 15;
+  maxCells: 15;
   stat: InnerStat; // 사용자가 변경 가능
 }
 
@@ -198,7 +198,19 @@ interface BlockSummary {
 }
 ```
 
-## 6. 우선순위 설정 (Priority)
+## 6. 영역별 칸 수 설정 (Region Cell Setting)
+
+```typescript
+interface RegionCellSetting {
+  region: RegionStat; // 영역 스탯
+  targetCells: number; // 목표 칸 수 (0 = 미지정, 배치 금지)
+  maxCells: number; // 최대 칸 수 (외부 40, 내부 15)
+}
+
+type RegionStat = OuterStat | InnerStat;
+```
+
+## 7. 우선순위 설정 (Priority)
 
 ```typescript
 interface Priority {
@@ -210,22 +222,20 @@ interface Priority {
 type PresetType = "hunting" | "boss";
 
 interface CustomPriority {
-  required: RegionStat[]; // 0순위 (필수)
-  priorities: RegionStat[][]; // 1순위, 2순위, ... (각 배열 내 동일 순위)
-  excluded: RegionStat[]; // 미지정 (배치 안 함)
+  required: RegionCellSetting[]; // 0순위 (필수 - 100% 채움)
+  priorities: RegionCellSetting[][]; // 1순위, 2순위, ... (최대한 채움)
+  // 미지정 영역: targetCells = 0, 배치 금지
 }
-
-type RegionStat = OuterStat | InnerStat;
 ```
 
-### 6.1 프리셋
+### 7.1 프리셋
 
-| 프리셋 | 우선순위                                    |
-| ------ | ------------------------------------------- |
-| 사냥   | 획득 경험치 > 크리티컬 데미지 > 일반 데미지 |
-| 보스   | 크리티컬 데미지 > 보스 데미지 > 방어율 무시 |
+| 프리셋 | 0순위                | 1순위                | 2순위            |
+| ------ | -------------------- | -------------------- | ---------------- |
+| 사냥   | 획득 경험치 40칸     | 크리티컬 데미지 40칸 | 일반 데미지 40칸 |
+| 보스   | 크리티컬 데미지 40칸 | 보스 데미지 40칸     | 방어율 무시 40칸 |
 
-## 7. 배치 결과 (Placement Result)
+## 8. 배치 결과 (Placement Result)
 
 ```typescript
 interface PlacementResult {
@@ -245,20 +255,21 @@ interface BlockPlacement {
 }
 
 interface PlacementStats {
-  targetCells: number; // 목표 칸 수
-  placedCells: number; // 배치된 칸 수
-  regionStats: RegionCellCount[];
+  totalTargetCells: number; // 총 목표 칸 수
+  totalPlacedCells: number; // 총 배치된 칸 수
+  regionStats: RegionPlacementStat[];
 }
 
-interface RegionCellCount {
+interface RegionPlacementStat {
   region: RegionStat;
-  targetCells?: number; // 0순위인 경우 목표
+  targetCells: number; // 목표 칸 수
   placedCells: number; // 실제 배치된 칸 수
   isSatisfied: boolean; // 목표 충족 여부
+  isForbidden: boolean; // 배치 금지 영역 여부 (targetCells = 0)
 }
 ```
 
-## 8. 상태 관리 (Store)
+## 9. 상태 관리 (Store)
 
 ```typescript
 interface UnionPlacerState {
@@ -268,8 +279,10 @@ interface UnionPlacerState {
   selectedCharacters: Character[];
   blockSummary: BlockSummary;
 
-  // 설정
-  targetCells: number;
+  // 영역별 칸 수 설정
+  regionSettings: RegionCellSetting[];
+
+  // 우선순위 설정
   priority: Priority;
 
   // 탐색
