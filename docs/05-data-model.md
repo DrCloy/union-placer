@@ -202,13 +202,21 @@ interface BlockSummary {
 
 ```typescript
 interface RegionCellSetting {
-  region: RegionStat; // 영역 스탯
-  targetCells: number; // 목표 칸 수 (0 = 미지정, 배치 금지)
+  region: RegionStat;
+  targetCells: number; // 목표 칸 수 (0 = 미지정)
   maxCells: number; // 최대 칸 수 (외부 40, 내부 15)
+  isOuter: boolean; // 외부 영역 여부
 }
 
 type RegionStat = OuterStat | InnerStat;
 ```
+
+### 미지정 영역 처리
+
+| 영역 | 미지정 시 동작                                                   |
+| ---- | ---------------------------------------------------------------- |
+| 외부 | 배치 금지 (targetCells = 0)                                      |
+| 내부 | 연결용 배치 허용 (targetCells = 0이지만 연결 목적으로 사용 가능) |
 
 ## 7. 우선순위 설정 (Priority)
 
