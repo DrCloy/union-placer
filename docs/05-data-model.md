@@ -282,7 +282,8 @@ interface RegionPlacementStat {
 ```typescript
 interface UnionPlacerState {
   // 블록 입력
-  inputMethod: "oauth" | "search" | "manual";
+  inputMethod: "nickname" | "manual";
+  apiKey: string | null;
   characters: Character[];
   selectedCharacters: Character[];
   blockSummary: BlockSummary;
