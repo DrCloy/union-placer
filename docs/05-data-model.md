@@ -183,7 +183,31 @@ interface Character {
 }
 ```
 
-## 5. 블록 카운팅 (Block Count)
+## 5. 직업 매핑 (Job Mapping)
+
+### 5.1 직업군 매핑
+
+```typescript
+type JobGroup = "warrior" | "mage" | "archer" | "thief" | "pirate" | "xenon";
+
+// character_class(세부 직업명) → JobGroup 매핑
+// 정확한 직업명은 API 응답 확인 후 constants/jobs.ts에 정의
+```
+
+### 5.2 유효 스탯 매핑
+
+```typescript
+type InnerStat = "str" | "dex" | "int" | "luk" | "hp" | "mp" | "atk" | "matk";
+
+interface JobEffectiveStats {
+  jobGroup: JobGroup;
+  effectiveStats: InnerStat[];
+}
+
+// 특수 직업은 별도 매핑 (데몬 어벤져, 듀얼 블레이드, 섀도어, 카데나, 제논)
+```
+
+## 6. 블록 카운팅 (Block Count)
 
 ```typescript
 interface BlockCount {
@@ -198,7 +222,7 @@ interface BlockSummary {
 }
 ```
 
-## 6. 영역별 칸 수 설정 (Region Cell Setting)
+## 7. 영역별 칸 수 설정 (Region Cell Setting)
 
 ```typescript
 interface RegionCellSetting {
@@ -218,7 +242,7 @@ type RegionStat = OuterStat | InnerStat;
 | 외부 | 배치 금지 (targetCells = 0)                                      |
 | 내부 | 연결용 배치 허용 (targetCells = 0이지만 연결 목적으로 사용 가능) |
 
-## 7. 우선순위 설정 (Priority)
+## 8. 우선순위 설정 (Priority)
 
 ```typescript
 interface Priority {
@@ -236,14 +260,14 @@ interface CustomPriority {
 }
 ```
 
-### 7.1 프리셋
+### 8.1 프리셋
 
 | 프리셋 | 0순위                | 1순위                | 2순위            |
 | ------ | -------------------- | -------------------- | ---------------- |
 | 사냥   | 획득 경험치 40칸     | 크리티컬 데미지 40칸 | 일반 데미지 40칸 |
 | 보스   | 크리티컬 데미지 40칸 | 보스 데미지 40칸     | 방어율 무시 40칸 |
 
-## 8. 배치 결과 (Placement Result)
+## 9. 배치 결과 (Placement Result)
 
 ```typescript
 interface PlacementResult {
@@ -277,7 +301,7 @@ interface RegionPlacementStat {
 }
 ```
 
-## 9. 상태 관리 (Store)
+## 10. 상태 관리 (Store)
 
 ```typescript
 interface UnionPlacerState {
