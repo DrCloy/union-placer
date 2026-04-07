@@ -24,6 +24,7 @@ Vite + React 19 (React Compiler), TypeScript strict, Tailwind CSS v4, Zustand v5
 - `naming.md` — 파일명, 변수명, 도메인 용어
 - `domain.md` — 블록·보드·스탯·API 도메인 지식
 - `commit.md` — 커밋 컨벤션
+- `workflow.md` — 브랜치·PR·코드 리뷰 워크플로우
 
 ## Checklist (작업 완료 전 필수)
 

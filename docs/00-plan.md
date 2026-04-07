@@ -53,6 +53,29 @@ components/   ← 전부 가능
 □ 컴포넌트당 하나의 파일
 ```
 
+### 개발 워크플로우
+
+브랜치 전략 및 PR·리뷰 흐름 → `.claude/rules/workflow.md`
+
+```
+Phase 시작
+  └─ git checkout -b phase/N-description
+      └─ 작업 + 커밋 (pre-commit: npm run check 자동 실행)
+          └─ PR 생성 전: 열린 PR 확인 + 충돌 가능성 검토
+              └─ 충돌 가능 → 로컬 rebase 해결 후 PR 생성
+              └─ 충돌 없음 → gh pr create
+                  └─ CodeRabbit AI 자동 리뷰
+                      └─ 사용자 알림 시 코멘트 조회 → 검토 → 수정 → 재커밋
+                          └─ merge 전 충돌 재확인 (필요 시 rebase + force-with-lease)
+                              └─ 사용자 Approve → Squash merge → main
+```
+
+- main 직접 커밋 금지
+- PR 없이 merge 금지
+- 사용자 Approve 없이 merge 금지
+- CodeRabbit 설정: `.coderabbit.yaml`
+- 상세 워크플로우: `.claude/rules/workflow.md`
+
 ---
 
 ## Phase 0 — 하네스 인프라 ✅
@@ -66,12 +89,17 @@ components/   ← 전부 가능
 | 0-4    | Claude Code hooks (PostToolUse → check)                                         | `.claude/settings.json`                               | ✅   |
 | 0-5    | VS Code Copilot 설정 (instructions + tasks + MCP)                               | `.github/copilot-instructions.md`, `.vscode/`         | ✅   |
 | 0-6    | Stitch MCP 등록 (Claude Code 유저 레벨)                                         | `~/.claude.json`                                      | ✅   |
+| 0-7    | pre-commit hook (커밋 전 check 자동 실행)                                       | `.githooks/pre-commit`, `package.json` prepare        | ✅   |
+| 0-8    | 개발 워크플로우 규칙 (브랜치·PR·리뷰)                                          | `.claude/rules/workflow.md`, `.github/instructions/`  | ✅   |
+| 0-9    | CodeRabbit AI 코드 리뷰 설정                                                    | `.coderabbit.yaml`                                    | ✅   |
+| 0-10   | CodeRabbit 리뷰 검토·수정 워크플로우 (에이전트 직접 수행)                       | `.claude/rules/workflow.md`                           | ✅   |
 
 **비고:**
 
 - Nexon Open API: 공식 MCP 없음 → `src/lib/api/nexon.ts`에서 REST 직접 호출
 - GitHub: `gh` CLI로 작업, MCP 불필요
 - `.vscode/mcp.json`은 gitignore 처리 (API Key 포함)
+- CodeRabbit 리뷰 검토·수정: 에이전트가 `gh` CLI로 코멘트를 조회하고 파일을 직접 수정
 
 ---
 

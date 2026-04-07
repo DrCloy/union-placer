@@ -30,6 +30,13 @@ components/   ← 전부 가능
 
 ESLint가 위반 시 에러로 강제합니다. 코드 생성 후 `npm run check`로 확인하세요.
 
+## Development workflow
+
+- `main` 직접 커밋 금지
+- Phase 시작: `git checkout -b phase/N-description`
+- Phase 완료: `gh pr create` → CodeRabbit 자동 리뷰 → 지적사항 수정 → 사용자 Approve → Squash merge
+- 상세: `.github/instructions/workflow.instructions.md`
+
 ## Checklist (작업 완료 전 필수)
 
 ```
@@ -47,3 +54,4 @@ ESLint가 위반 시 에러로 강제합니다. 코드 생성 후 `npm run check
 - 네이밍 규칙: `.github/instructions/naming.instructions.md`
 - 커밋 규칙: `.github/instructions/commit.instructions.md`
 - 도메인 지식: `.github/instructions/domain.instructions.md`
+- 개발 워크플로우: `.github/instructions/workflow.instructions.md`
