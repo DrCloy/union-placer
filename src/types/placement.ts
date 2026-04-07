@@ -4,23 +4,38 @@ export type RegionStat = OuterStat | InnerStat;
 
 export type PresetType = "hunting" | "boss";
 
-export interface RegionCellSetting {
-  region: RegionStat;
+export interface OuterRegionCellSetting {
+  region: OuterStat;
   targetCells: number;
-  maxCells: number;
-  isOuter: boolean;
+  maxCells: 40;
+  isOuter: true;
 }
+
+export interface InnerRegionCellSetting {
+  region: InnerStat;
+  targetCells: number;
+  maxCells: 15;
+  isOuter: false;
+}
+
+export type RegionCellSetting =
+  | OuterRegionCellSetting
+  | InnerRegionCellSetting;
 
 export interface CustomPriority {
   required: RegionCellSetting[];
   priorities: RegionCellSetting[][];
 }
 
-export interface Priority {
-  type: "preset" | "custom";
-  preset?: PresetType;
-  custom?: CustomPriority;
-}
+export type Priority =
+  | {
+      type: "preset";
+      preset: PresetType;
+    }
+  | {
+      type: "custom";
+      custom: CustomPriority;
+    };
 
 export interface BlockPlacement {
   blockIndex: number;
