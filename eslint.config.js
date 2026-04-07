@@ -31,7 +31,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [{
-          group: ['@/constants*', '@/lib*', '@/store*', '@/hooks*', '@/components*', '@/workers*'],
+          group: ['@/constants', '@/constants/**', '@/lib', '@/lib/**', '@/store', '@/store/**', '@/hooks', '@/hooks/**', '@/components', '@/components/**', '@/workers', '@/workers/**'],
           message: 'types/ 는 다른 내부 레이어를 import할 수 없습니다.',
         }],
       }],
@@ -43,7 +43,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [{
-          group: ['@/lib*', '@/store*', '@/hooks*', '@/components*', '@/workers*'],
+          group: ['@/lib', '@/lib/**', '@/store', '@/store/**', '@/hooks', '@/hooks/**', '@/components', '@/components/**', '@/workers', '@/workers/**'],
           message: 'constants/ 는 types/ 만 import할 수 있습니다.',
         }],
       }],
@@ -55,7 +55,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [{
-          group: ['@/store*', '@/hooks*', '@/components*', '@/workers*'],
+          group: ['@/store', '@/store/**', '@/hooks', '@/hooks/**', '@/components', '@/components/**', '@/workers', '@/workers/**'],
           message: 'lib/ 는 types/, constants/ 만 import할 수 있습니다.',
         }],
       }],
@@ -67,7 +67,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [{
-          group: ['@/store*', '@/hooks*', '@/components*'],
+          group: ['@/store', '@/store/**', '@/hooks', '@/hooks/**', '@/components', '@/components/**'],
           message: 'workers/ 는 store/, hooks/, components/ 를 import할 수 없습니다.',
         }],
       }],
@@ -79,7 +79,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [{
-          group: ['@/workers*', '@/hooks*', '@/components*'],
+          group: ['@/workers', '@/workers/**', '@/hooks', '@/hooks/**', '@/components', '@/components/**'],
           message: 'store/ 는 types/, constants/, lib/ 만 import할 수 있습니다.',
         }],
       }],
@@ -91,7 +91,7 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [{
-          group: ['@/workers*', '@/components*'],
+          group: ['@/workers', '@/workers/**', '@/components', '@/components/**'],
           message: 'hooks/ 는 workers/, components/ 를 import할 수 없습니다.',
         }],
       }],

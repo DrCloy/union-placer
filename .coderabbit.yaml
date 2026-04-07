@@ -137,8 +137,10 @@ reviews:
         - API Key 우선순위: 사용자 제공 key > 서비스 환경변수 key
 
 finishing_touches:
-  docstrings: false    # 주석 자동 생성 금지
-  unit_tests: false    # 테스트 자동 생성 금지
+  docstrings:
+    enabled: false
+  unit_tests:
+    enabled: false
 
 chat:
   auto_reply: true
