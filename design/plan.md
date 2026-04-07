@@ -93,7 +93,7 @@ Stage 3: 페이지 목업 5장   →  design/wireframes.md
 | 4 | Step 3-A 탐색 중 | 진행률 표시, 중단 버튼 |
 | 5 | Step 3-B 탐색 완료 | 유니온 보드 + 통계 |
 
-**레퍼런스 이미지:** `screen1.png`, `screen2.png`, `screen3.png`
+**레퍼런스 이미지:** `references/screen1.png`, `references/screen2.png`, `references/screen3.png`
 
 **산출물:**
 - Figma export

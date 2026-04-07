@@ -204,7 +204,12 @@ interface JobEffectiveStats {
   effectiveStats: InnerStat[];
 }
 
-// 특수 직업은 별도 매핑 (데몬 어벤져, 듀얼 블레이드, 섀도어, 카데나, 제논)
+// 특수 직업 별도 매핑:
+// 데몬 어벤져: atk, hp, str
+// 제논:       atk, str, dex, luk
+// 듀얼 블레이드: atk, luk, str, dex
+// 섀도어:      atk, luk, str, dex
+// 카데나:      atk, luk, str, dex
 ```
 
 ## 6. 블록 카운팅 (Block Count)

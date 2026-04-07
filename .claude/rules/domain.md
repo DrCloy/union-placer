@@ -46,7 +46,7 @@ paths:
 | 도적 | atk, luk, dex |
 | 해적 | atk, str, dex |
 
-특수: 데몬어벤져(atk,hp,str), 제논(atk,str,dex,luk)
+특수: 데몬어벤져(atk,hp,str), 제논(atk,str,dex,luk), 듀얼블레이드(atk,luk,str,dex), 섀도어(atk,luk,str,dex), 카데나(atk,luk,str,dex)
 
 ## 배치 규칙
 
