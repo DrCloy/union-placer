@@ -18,9 +18,7 @@ export interface InnerRegionCellSetting {
   isOuter: false;
 }
 
-export type RegionCellSetting =
-  | OuterRegionCellSetting
-  | InnerRegionCellSetting;
+export type RegionCellSetting = OuterRegionCellSetting | InnerRegionCellSetting;
 
 export interface CustomPriority {
   required: RegionCellSetting[];
