@@ -28,7 +28,7 @@
 
 | 분류              | 기술             |
 | ----------------- | ---------------- |
-| **프레임워크**    | Vite + React 18  |
+| **프레임워크**    | Vite + React 19 (React Compiler)  |
 | **언어**          | TypeScript       |
 | **스타일링**      | Tailwind CSS     |
 | **상태 관리**     | Zustand          |
@@ -90,7 +90,9 @@ union-placer/
 │   ├── workers/                     # Web Worker
 │   │   └── placementWorker.ts
 │   ├── lib/                         # 유틸리티
-│   │   ├── api.ts                   # API 호출
+│   │   ├── api/                     # API 호출
+│   │   │   ├── nexon.ts             # fetchUnionInfo
+│   │   │   └── types.ts             # Nexon API 응답 타입
 │   │   ├── blocks.ts                # 블록 데이터 및 변환
 │   │   ├── board.ts                 # 유니온 판 데이터
 │   │   └── algorithm/               # 배치 알고리즘
@@ -480,39 +482,7 @@ UnionBoard 시각화
 
 ## 9. 개발 단계별 구현 순서
 
-### Phase 1: 기본 구조
-
-- 프로젝트 초기 설정 (Vite + React + TS + Tailwind)
-- 폴더 구조 생성
-- 타입 정의
-- 상수 데이터 (블록 모양, 유니온 판 영역)
-
-### Phase 2: UI 구현
-
-- 공통 컴포넌트
-- 레이아웃 + 스텝 인디케이터
-- 블록 입력 화면 (수동 입력 먼저)
-- 설정 화면
-- 결과 화면 (시각화)
-
-### Phase 3: 핵심 기능
-
-- Zustand 스토어
-- 배치 알고리즘 (메인 스레드에서 먼저 테스트)
-- Web Worker 적용
-- 진행률 표시 + 중단 기능
-
-### Phase 4: API 연동
-
-- Serverless Function
-- 닉네임 검색 기능
-- API Key 입력 옵션
-
-### Phase 5: 배포 및 고도화
-
-- Vercel 배포
-- 서비스 단계 API Key 발급
-- 프렌즈 신청 (이후)
+→ [docs/08-task-breakdown.md](../docs/08-task-breakdown.md) 참조 (Phase 1~8 상세 태스크 분해)
 
 ---
 

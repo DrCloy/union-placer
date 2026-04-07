@@ -1,6 +1,17 @@
 {
+  // GitHub Copilot
   "github.copilot.chat.codeGeneration.useInstructionFiles": true,
   "chat.instructionsFilesLocations": {
     ".github/instructions": true
-  }
+  },
+  "github.copilot.chat.agent.runTasks": true,
+
+  // ESLint
+  "eslint.probe": ["typescript", "typescriptreact"],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+
+  // TypeScript
+  "js/ts.tsdk.path": "node_modules/typescript/lib"
 }

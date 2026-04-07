@@ -1,0 +1,146 @@
+language: "ko-KR"
+
+reviews:
+  profile: "assertive"
+  request_changes_workflow: true   # 지적사항이 있으면 CHANGES_REQUESTED 상태로 제출
+
+  # 불필요한 부가 기능 비활성화
+  high_level_summary: false        # PR description 자동 수정 금지
+  poem: false                      # 시(poem) 생성 금지
+  sequence_diagrams: false         # 시퀀스 다이어그램 생성 금지
+  changed_files_summary: false     # 변경 파일 요약 금지
+  collapse_walkthrough: true       # walkthrough는 접힌 상태로
+
+  auto_review:
+    enabled: true
+    drafts: false
+
+  path_filters:
+    - "!dist/**"
+    - "!node_modules/**"
+    - "!*.lock"
+    - "!package-lock.json"
+    - "!docs/**"
+    - "!design/**"
+    - "!.claude/**"
+    - "!.github/instructions/**"
+    - "!.github/scripts/**"
+    - "!AGENTS.md"
+
+  path_instructions:
+    - path: "src/types/**"
+      instructions: |
+        ## 레이어 규칙
+        이 레이어는 어떤 내부 모듈도 import해서는 안 됩니다.
+        (@/constants, @/lib, @/store, @/hooks, @/components, @/workers 모두 금지)
+
+        ## 타입 정의 검토 기준
+        - any 타입 사용 절대 금지
+        - 모든 필드는 명시적으로 타입 선언 (암묵적 추론에만 의존 금지)
+        - interface vs type alias 선택이 의도에 맞는지 (확장 가능성 여부)
+        - 유니온 타입은 도메인 개념을 정확히 반영하는지
+        - 도메인 용어 준수: Block(Piece/Tile 금지), Region(Area/Zone 금지),
+          Placement(Position/Layout 금지), Board(Grid/Map 금지)
+
+    - path: "src/constants/**"
+      instructions: |
+        ## 레이어 규칙
+        src/types/ 만 import 가능합니다.
+        (@/lib, @/store, @/hooks, @/components, @/workers 금지)
+
+        ## 상수 데이터 검토 기준
+        - any 타입 사용 절대 금지
+        - 상수는 UPPER_SNAKE_CASE, 타입 단언(as const)으로 불변성 확보
+        - 블록 모양 데이터: 16종(B×6, A×6, S×2, SS×2, SSS×1) 완전성 확인
+        - 보드 영역 좌표: 22×20 그리드 범위 내인지 확인
+        - 외부 8영역 스탯 코드 정확성: exp, critRate, bossDamage, normalDamage,
+          buffDuration, ignoreDefense, critDamage, statusResist
+
+    - path: "src/lib/**"
+      instructions: |
+        ## 레이어 규칙
+        src/types/, src/constants/ 만 import 가능합니다.
+        (@/store, @/hooks, @/components, @/workers 금지)
+
+        ## 유틸리티/알고리즘 검토 기준
+        - any 타입 사용 절대 금지
+        - 순수 함수 지향 (사이드 이펙트 최소화)
+        - 알고리즘 파일(lib/algorithm/): 배치 규칙 4가지 준수 여부 확인
+          1. 모든 블록이 상하좌우 연결되어 하나의 덩어리를 이루는가
+          2. 최소 1개 블록 기준점이 중앙 4칸 (9,10)(9,11)(10,10)(10,11)에 위치하는가
+          3. 회전(0°/90°/180°/270°) 및 반전 변형이 올바르게 구현되었는가
+          4. 미지정 외부 영역에 블록이 배치되지 않는가
+        - API 파일(lib/api/): fetch 실패 시 에러 전파가 올바른가
+
+    - path: "src/workers/**"
+      instructions: |
+        ## 레이어 규칙
+        src/types/, src/constants/, src/lib/ 만 import 가능합니다.
+        @/store, @/hooks, @/components import 절대 금지 — Worker는 메인 스레드와 독립적으로 실행됩니다.
+
+        ## Web Worker 검토 기준
+        - any 타입 사용 절대 금지
+        - postMessage 페이로드 타입이 명시적으로 정의되어 있는가
+        - progress / best / complete 메시지 타입 구분이 명확한가
+        - Worker 종료(terminate) 시 정리가 올바르게 되는가
+        - 무한 루프 방지를 위한 탈출 조건이 있는가
+
+    - path: "src/store/**"
+      instructions: |
+        ## 레이어 규칙
+        src/types/, src/constants/, src/lib/ 만 import 가능합니다.
+        (@/workers, @/hooks, @/components 금지)
+
+        ## Zustand 스토어 검토 기준
+        - any 타입 사용 절대 금지
+        - 액션 네이밍: set(상태변경), toggle(토글), reset(초기화), fetch(데이터가져오기)
+          — update/change/modify/get/load/clear/init 금지
+        - 파생 상태(derived state)는 selector로 분리하고 있는가
+        - store → components 역방향 import가 없는가 (스토어가 컴포넌트를 알면 안 됨)
+        - 불필요한 리렌더링을 유발할 수 있는 객체/배열 참조 변경이 있는가
+
+    - path: "src/hooks/**"
+      instructions: |
+        ## 레이어 규칙
+        src/types/, src/store/, src/lib/ 만 import 가능합니다.
+        (@/workers, @/components 금지)
+
+        ## 커스텀 훅 검토 기준
+        - any 타입 사용 절대 금지
+        - 훅 이름은 반드시 use 접두사
+        - useEffect cleanup 누락 여부 (Worker terminate, fetch abort 등)
+        - 의존성 배열(deps)이 올바르게 선언되어 있는가
+        - Worker 훅: Worker 인스턴스 메모리 누수(미종료) 가능성 확인
+
+    - path: "src/components/**"
+      instructions: |
+        ## 레이어 규칙
+        모든 레이어 import 가능. 단, workers/ 직접 import는 hooks/ 통해서만.
+
+        ## 컴포넌트 검토 기준
+        - any 타입 사용 절대 금지
+        - 컴포넌트당 하나의 파일 원칙 (하나의 파일에 여러 컴포넌트 export 금지)
+        - 인라인 스타일(style={{...}}) 금지 — Tailwind CSS 유틸리티 클래스만 사용
+        - 커스텀 CSS 최소화, className 내 동적 클래스는 조건부로 조합
+        - Props 인터페이스는 파일 상단에 정의
+        - React 이벤트 핸들러는 handle 접두사 (handleClick, handleSubmit 등)
+        - 접근성: 인터랙티브 요소에 적절한 role, aria 속성이 있는가
+
+    - path: "api/**"
+      instructions: |
+        ## Vercel Serverless Functions 검토 기준
+        - any 타입 사용 절대 금지
+        - 보안: process.env 값을 응답 body에 절대 포함하지 않는가
+        - 보안: 에러 응답에 스택 트레이스, 내부 경로 등 민감 정보 포함 금지
+        - 외부 API 호출 실패 시 적절한 HTTP 상태 코드로 응답하는가 (500 남발 금지)
+        - OCID 조회 → 유니온 조회 → 레이더 조회 순서가 맞는가
+        - API Key 우선순위: 사용자 제공 key > 서비스 환경변수 key
+
+finishing_touches:
+  docstrings:
+    enabled: false
+  unit_tests:
+    enabled: false
+
+chat:
+  auto_reply: true

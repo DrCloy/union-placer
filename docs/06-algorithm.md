@@ -39,6 +39,7 @@
 ```text
 1단계: 그리디 초기 해 생성
 └─ 우선순위 순서대로 빠르게 배치
+└─ 백트래킹의 초기 최선해(bestResult)로 사용
 2단계: 최적화 탐색
 └─ 백트래킹으로 더 나은 해 탐색
 └─ 가지치기로 탐색 공간 축소
@@ -63,7 +64,7 @@
 function generateVariants(shape: BlockShape): BlockVariant[] {
   const variants: BlockVariant[] = [];
 
-  for (const rotation of [0, 90, 180, 270]) {
+  for (const rotation of [0, 90, 180, 270] as const) {
     for (const flipped of [false, true]) {
       const cells = transformCells(shape.cells, rotation, flipped);
       variants.push({ ...shape, rotation, flipped, cells });
@@ -74,7 +75,7 @@ function generateVariants(shape: BlockShape): BlockVariant[] {
   return deduplicateVariants(variants);
 }
 
-function transformCells(cells: [number, number][], rotation: number, flipped: boolean): [number, number][] {
+function transformCells(cells: [number, number][], rotation: 0 | 90 | 180 | 270, flipped: boolean): [number, number][] {
   let result = cells;
 
   // 반전 (y축 기준)
@@ -82,7 +83,7 @@ function transformCells(cells: [number, number][], rotation: number, flipped: bo
     result = result.map(([x, y]) => [x, -y]);
   }
 
-  // 회전 (90도 단위)
+  // 회전 (90도 단위, 반시계 방향)
   const rotations = rotation / 90;
   for (let i = 0; i < rotations; i++) {
     result = result.map(([x, y]) => [-y, x]);
@@ -90,30 +91,23 @@ function transformCells(cells: [number, number][], rotation: number, flipped: bo
 
   return result;
 }
-```
 
-### 3.2 좌표 변환 로직
-
-```typescript
-function transformCells(cells: [number, number][], rotation: number, flipped: boolean): [number, number][] {
-  let result = cells;
-
-  // 반전 (y축 기준)
-  if (flipped) {
-    result = result.map(([x, y]) => [x, -y]);
-  }
-
-  // 회전 (90도 단위)
-  const rotations = rotation / 90;
-  for (let i = 0; i < rotations; i++) {
-    result = result.map(([x, y]) => [-y, x]);
-  }
-
-  return result;
+function deduplicateVariants(variants: BlockVariant[]): BlockVariant[] {
+  const seen = new Set<string>();
+  return variants.filter((v) => {
+    // 셀 좌표를 정렬된 문자열로 해시화
+    const key = [...v.cells]
+      .sort(([ax, ay], [bx, by]) => ax - bx || ay - by)
+      .map(([x, y]) => `${x},${y}`)
+      .join("|");
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 ```
 
-### 3.3 배치 가능 여부 검사
+### 3.2 배치 가능 여부 검사
 
 ```typescript
 function canPlace(board: Board, variant: BlockVariant, position: [number, number], regionSettings: RegionCellSetting[]): boolean {
@@ -123,7 +117,7 @@ function canPlace(board: Board, variant: BlockVariant, position: [number, number
     ([x, y]) =>
       isInBounds(x, y) && // 판 범위 내
       !isOccupied(board, x, y) && // 빈 칸
-      !isForbiddenRegion(x, y, regionSettings), // 미지정 영역 아님
+      !isForbiddenRegion(x, y, regionSettings), // 미지정 외부 영역 아님
   );
 }
 
@@ -132,52 +126,12 @@ function isForbiddenRegion(x: number, y: number, regionSettings: RegionCellSetti
   const setting = regionSettings.find((s) => s.region === region);
 
   // 미지정 외부 영역 = 배치 금지
-  // 미지정 내부 영역 = 연결용 허용 (여기서는 금지 아님)
-  if (setting?.targetCells === 0 && setting?.isOuter) {
-    return true;
-  }
-  return false;
+  // 미지정 내부 영역 = 연결용 허용 (금지 아님)
+  return (setting?.targetCells === 0 && setting?.isOuter) ?? false;
 }
 ```
 
-### 3.4 연결성 검사
-
-```typescript
-function isConnected(board: Board): boolean {
-  const occupiedCells = getOccupiedCells(board);
-  if (occupiedCells.length === 0) return true;
-
-  // BFS/DFS로 연결성 확인
-  const visited = new Set<string>();
-  const queue = [occupiedCells[0]];
-
-  while (queue.length > 0) {
-    const [x, y] = queue.shift()!;
-    const key = `${x},${y}`;
-
-    if (visited.has(key)) continue;
-    visited.add(key);
-
-    // 상하좌우 인접 칸 탐색
-    for (const [dx, dy] of [
-      [0, 1],
-      [0, -1],
-      [1, 0],
-      [-1, 0],
-    ]) {
-      const nx = x + dx;
-      const ny = y + dy;
-      if (isOccupied(board, nx, ny)) {
-        queue.push([nx, ny]);
-      }
-    }
-  }
-
-  return visited.size === occupiedCells.length;
-}
-```
-
-### 3.4 연결성 검사
+### 3.3 연결성 검사
 
 ```typescript
 function isConnected(board: Board): boolean {
@@ -195,13 +149,12 @@ function isConnected(board: Board): boolean {
     if (visited.has(key)) continue;
     visited.add(key);
 
-    // 상하좌우 인접 칸 탐색
     for (const [dx, dy] of [
       [0, 1],
       [0, -1],
       [1, 0],
       [-1, 0],
-    ]) {
+    ] as const) {
       const nx = x + dx;
       const ny = y + dy;
       if (isOccupied(board, nx, ny)) {
@@ -214,7 +167,7 @@ function isConnected(board: Board): boolean {
 }
 ```
 
-### 3.5 영역별 배치 현황 계산
+### 3.4 영역별 배치 현황 계산
 
 ```typescript
 function calculateRegionStats(board: Board, regionSettings: RegionCellSetting[]): RegionPlacementStat[] {
@@ -231,7 +184,112 @@ function calculateRegionStats(board: Board, regionSettings: RegionCellSetting[])
 }
 ```
 
+### 3.5 그리디 초기 해 생성
+
+백트래킹 전에 빠른 초기 해를 만들어 가지치기 기준값으로 사용한다.
+
+```typescript
+function buildGreedySolution(blocks: BlockShape[], allVariants: BlockVariant[][], regionSettings: RegionCellSetting[], priority: Priority): PlacementResult | null {
+  const state: SearchState = {
+    board: createEmptyBoard(),
+    placements: [],
+    remainingBlocks: blocks.map((_, i) => i),
+    placedCells: 0,
+    regionStats: calculateRegionStats(createEmptyBoard(), regionSettings),
+  };
+
+  // 첫 블록: 중앙 4칸 중 가장 점수 높은 위치에 배치
+  const centerPositions: [number, number][] = [
+    [9, 10],
+    [9, 11],
+    [10, 10],
+    [10, 11],
+  ];
+
+  const firstPlacement = findBestPlacement(state, allVariants, regionSettings, priority, centerPositions);
+  if (!firstPlacement) return null;
+
+  let currentState = placeBlock(state, firstPlacement.blockIdx, firstPlacement.variant, firstPlacement.pos);
+
+  // 나머지 블록: 매 단계 가장 점수 높은 배치 선택
+  while (currentState.remainingBlocks.length > 0) {
+    const positions = getAdjacentPositions(currentState.board, regionSettings, priority);
+    const placement = findBestPlacement(currentState, allVariants, regionSettings, priority, positions);
+    if (!placement) break; // 더 이상 배치 불가
+
+    currentState = placeBlock(currentState, placement.blockIdx, placement.variant, placement.pos);
+  }
+
+  return createResult(currentState, priority);
+}
+
+// 주어진 위치 후보 중 가장 높은 점수의 (블록, 변형, 위치) 조합 반환
+function findBestPlacement(
+  state: SearchState,
+  allVariants: BlockVariant[][],
+  regionSettings: RegionCellSetting[],
+  priority: Priority,
+  positions: [number, number][],
+): { blockIdx: number; variant: BlockVariant; pos: [number, number] } | null {
+  let best: {
+    blockIdx: number;
+    variant: BlockVariant;
+    pos: [number, number];
+    score: number;
+  } | null = null;
+
+  for (const blockIdx of state.remainingBlocks) {
+    for (const variant of allVariants[blockIdx]) {
+      for (const pos of positions) {
+        if (!canPlace(state.board, variant, pos, regionSettings)) continue;
+
+        const score = scorePlacement(variant, pos, state, regionSettings, priority);
+        if (!best || score > best.score) {
+          best = { blockIdx, variant, pos, score };
+        }
+      }
+    }
+  }
+
+  return best;
+}
+
+// 배치 점수 계산: 0순위 충족 > 높은 우선순위 영역 > 총 칸 수
+function scorePlacement(variant: BlockVariant, pos: [number, number], state: SearchState, regionSettings: RegionCellSetting[], priority: Priority): number {
+  const absoluteCells = variant.cells.map(([dx, dy]) => [pos[0] + dx, pos[1] + dy]);
+
+  let score = 0;
+  const required = priority.custom?.required ?? [];
+  const priorities = priority.custom?.priorities ?? [];
+
+  for (const [x, y] of absoluteCells) {
+    const region = getRegionAt(x, y);
+    const setting = regionSettings.find((s) => s.region === region);
+    if (!setting || setting.targetCells === 0) continue;
+
+    // 0순위 영역: 최고 가중치
+    if (required.some((r) => r.region === region)) {
+      score += 1000;
+      continue;
+    }
+
+    // 우선순위별 가중치 (1순위 > 2순위 > ...)
+    const priorityIdx = priorities.findIndex((group) => group.some((s) => s.region === region));
+    if (priorityIdx >= 0) {
+      score += 100 / (priorityIdx + 1);
+      continue;
+    }
+
+    score += 1; // 미지정 내부 영역 (연결용)
+  }
+
+  return score;
+}
+```
+
 ### 3.6 메인 탐색 알고리즘
+
+그리디로 초기 해를 구한 뒤 백트래킹으로 더 나은 해를 탐색한다.
 
 ```typescript
 function findOptimalPlacement(blocks: BlockShape[], regionSettings: RegionCellSetting[], priority: Priority): PlacementResult | null {
@@ -241,7 +299,15 @@ function findOptimalPlacement(blocks: BlockShape[], regionSettings: RegionCellSe
   // 2. 총 목표 칸 수 계산
   const totalTargetCells = regionSettings.reduce((sum, s) => sum + s.targetCells, 0);
 
-  // 3. 초기 상태
+  // 3. 그리디 초기 해 생성 (백트래킹의 기준값)
+  let bestResult = buildGreedySolution(blocks, allVariants, regionSettings, priority);
+
+  // 그리디 해가 이미 최적이면 조기 종료
+  if (bestResult && isOptimal(bestResult, priority, regionSettings)) {
+    return bestResult;
+  }
+
+  // 4. 초기 상태
   const initialState: SearchState = {
     board: createEmptyBoard(),
     placements: [],
@@ -250,7 +316,7 @@ function findOptimalPlacement(blocks: BlockShape[], regionSettings: RegionCellSe
     regionStats: calculateRegionStats(createEmptyBoard(), regionSettings),
   };
 
-  // 4. 첫 블록은 중앙 4칸에 배치
+  // 5. 중앙 4칸에서 백트래킹 시작
   const centerPositions: [number, number][] = [
     [9, 10],
     [9, 11],
@@ -258,18 +324,20 @@ function findOptimalPlacement(blocks: BlockShape[], regionSettings: RegionCellSe
     [10, 11],
   ];
 
-  let bestResult: PlacementResult | null = null;
-
   for (const centerPos of centerPositions) {
     for (const blockIdx of initialState.remainingBlocks) {
       for (const variant of allVariants[blockIdx]) {
         if (!canPlace(initialState.board, variant, centerPos, regionSettings)) continue;
 
         const newState = placeBlock(initialState, blockIdx, variant, centerPos);
-        const result = searchRecursive(newState, allVariants, regionSettings, priority, totalTargetCells);
+        const result = searchRecursive(newState, blocks, allVariants, regionSettings, priority, totalTargetCells, bestResult);
 
         if (result && isBetterResult(result, bestResult, priority)) {
           bestResult = result;
+
+          if (isOptimal(bestResult, priority, regionSettings)) {
+            return bestResult;
+          }
         }
       }
     }
@@ -282,7 +350,15 @@ function findOptimalPlacement(blocks: BlockShape[], regionSettings: RegionCellSe
 ### 3.7 재귀 탐색 (백트래킹)
 
 ```typescript
-function searchRecursive(state: SearchState, allVariants: BlockVariant[][], regionSettings: RegionCellSetting[], priority: Priority, totalTargetCells: number): PlacementResult | null {
+function searchRecursive(
+  state: SearchState,
+  blocks: BlockShape[],
+  allVariants: BlockVariant[][],
+  regionSettings: RegionCellSetting[],
+  priority: Priority,
+  totalTargetCells: number,
+  currentBest: PlacementResult | null,
+): PlacementResult | null {
   // 종료 조건: 모든 목표 칸 수 달성
   if (state.placedCells === totalTargetCells) {
     return createResult(state, priority);
@@ -290,29 +366,28 @@ function searchRecursive(state: SearchState, allVariants: BlockVariant[][], regi
 
   // 가지치기: 남은 블록으로 목표 도달 불가
   const maxPossibleCells = state.placedCells + state.remainingBlocks.reduce((sum, idx) => sum + blocks[idx].cells.length, 0);
-  if (maxPossibleCells < totalTargetCells) {
-    return null;
-  }
+  if (maxPossibleCells < totalTargetCells) return null;
 
-  // 가지치기: 이미 목표 초과
-  if (state.placedCells > totalTargetCells) {
-    return null;
-  }
+  // 가지치기: 칸 수 초과 (목표보다 많이 배치됨)
+  if (state.placedCells > totalTargetCells) return null;
 
   // 가지치기: 0순위 영역 충족 불가능
-  if (!canSatisfyRequired(state, regionSettings, priority)) {
+  if (!canSatisfyRequired(state, blocks, regionSettings, priority)) return null;
+
+  // 가지치기: 현재 경로가 현재 최선해보다 나을 가능성 없음
+  if (currentBest && !canImproveBest(state, blocks, regionSettings, priority, currentBest)) {
     return null;
   }
 
-  let bestResult: PlacementResult | null = null;
+  let bestResult: PlacementResult | null = currentBest;
 
   // 다음 블록 선택 (우선순위 기반 정렬)
-  const sortedBlocks = sortBlocksByPriority(state.remainingBlocks, priority);
+  const sortedBlocks = sortBlocksByPriority(state.remainingBlocks, blocks, allVariants, priority);
+
+  // 배치 가능한 위치 탐색 (기존 블록과 인접한 위치만)
+  const adjacentPositions = getAdjacentPositions(state.board, regionSettings, priority);
 
   for (const blockIdx of sortedBlocks) {
-    // 배치 가능한 위치 탐색 (기존 블록과 인접한 위치만)
-    const adjacentPositions = getAdjacentPositions(state.board);
-
     for (const pos of adjacentPositions) {
       for (const variant of allVariants[blockIdx]) {
         if (!canPlace(state.board, variant, pos, regionSettings)) continue;
@@ -322,14 +397,14 @@ function searchRecursive(state: SearchState, allVariants: BlockVariant[][], regi
         // 연결성 검사
         if (!isConnected(newState.board)) continue;
 
-        const result = searchRecursive(newState, allVariants, regionSettings, priority, totalTargetCells);
+        const result = searchRecursive(newState, blocks, allVariants, regionSettings, priority, totalTargetCells, bestResult);
 
         if (result && isBetterResult(result, bestResult, priority)) {
           bestResult = result;
 
           // 최적해 찾으면 조기 종료
-          if (isOptimal(result, priority, regionSettings)) {
-            return result;
+          if (isOptimal(bestResult, priority, regionSettings)) {
+            return bestResult;
           }
         }
       }
@@ -351,13 +426,14 @@ function searchRecursive(state: SearchState, allVariants: BlockVariant[][], regi
 | 칸 수 초과 | 현재 배치 칸 수 > 총 목표 칸 수             |
 | 도달 불가  | 남은 블록 총합 + 현재 칸 수 < 총 목표 칸 수 |
 | 0순위 불가 | 남은 블록으로 0순위 영역 충족 불가능        |
+| 개선 불가  | 현재 경로가 그리디 초기 해보다 나을 수 없음 |
 | 연결 불가  | 배치 후 연결성 유지 불가능                  |
-| 금지 영역  | 미지정 영역에 배치 시도                     |
+| 금지 영역  | 미지정 외부 영역에 배치 시도                |
 
 ### 4.2 0순위 충족 가능 여부 검사
 
 ```typescript
-function canSatisfyRequired(state: SearchState, regionSettings: RegionCellSetting[], priority: Priority): boolean {
+function canSatisfyRequired(state: SearchState, blocks: BlockShape[], regionSettings: RegionCellSetting[], priority: Priority): boolean {
   const required = priority.custom?.required ?? [];
 
   for (const setting of required) {
@@ -367,23 +443,44 @@ function canSatisfyRequired(state: SearchState, regionSettings: RegionCellSettin
 
     if (remainingNeeded <= 0) continue;
 
-    // 남은 블록으로 채울 수 있는 최대 칸 수 계산
-    const maxFillable = calculateMaxFillableInRegion(state, setting.region, regionSettings);
+    // 남은 블록으로 해당 영역에 채울 수 있는 최대 칸 수 계산
+    const maxFillable = calculateMaxFillableInRegion(state, blocks, setting.region, regionSettings);
 
-    if (maxFillable < remainingNeeded) {
-      return false;
-    }
+    if (maxFillable < remainingNeeded) return false;
   }
 
   return true;
 }
 ```
 
-### 4.3 탐색 순서 최적화
+### 4.3 현재 최선해 개선 가능 여부 검사
+
+그리디 초기 해가 존재할 때, 현재 경로가 그보다 나아질 가능성이 없으면 즉시 가지치기.
 
 ```typescript
-function sortBlocksByPriority(blockIndices: number[], priority: Priority): number[] {
-  return blockIndices.sort((a, b) => {
+function canImproveBest(
+  state: SearchState,
+  blocks: BlockShape[],
+  regionSettings: RegionCellSetting[],
+  priority: Priority,
+  best: PlacementResult,
+): boolean {
+  // 0순위 충족 개수: 이미 best가 모두 충족했으면 현재도 그래야 함
+  const bestRequired = countSatisfiedRequired(best, priority);
+  const maxReachableRequired = calculateMaxReachableRequired(state, blocks, regionSettings, priority);
+  if (maxReachableRequired < bestRequired) return false;
+
+  // 남은 블록으로 채울 수 있는 최대 칸 수 기준으로 upper bound 계산
+  // 단순 구현: 남은 블록 전부 최고 우선순위 영역에 배치 가능하다고 가정
+  return true; // 정교한 bound 계산은 Phase 3에서 고도화
+}
+```
+
+### 4.4 탐색 순서 최적화
+
+```typescript
+function sortBlocksByPriority(blockIndices: number[], blocks: BlockShape[], allVariants: BlockVariant[][], priority: Priority): number[] {
+  return [...blockIndices].sort((a, b) => {
     // 1. 큰 블록 우선 (칸 수 많은 것)
     const sizeDiff = blocks[b].cells.length - blocks[a].cells.length;
     if (sizeDiff !== 0) return sizeDiff;
@@ -406,7 +503,7 @@ function getAdjacentPositions(board: Board, regionSettings: RegionCellSetting[],
       [0, -1],
       [1, 0],
       [-1, 0],
-    ]) {
+    ] as const) {
       const nx = x + dx;
       const ny = y + dy;
       if (isInBounds(nx, ny) && !isOccupied(board, nx, ny) && !isForbiddenRegion(nx, ny, regionSettings)) {
@@ -432,7 +529,7 @@ function getBoardHash(state: SearchState): string {
   // 보드 상태 + 남은 블록을 해시로 변환
   return JSON.stringify({
     board: state.board,
-    remaining: state.remainingBlocks.sort(),
+    remaining: [...state.remainingBlocks].sort(),
   });
 }
 ```
@@ -457,9 +554,7 @@ function isOptimal(result: PlacementResult, priority: Priority, regionSettings: 
   const required = priority.custom?.required ?? [];
   for (const setting of required) {
     const stat = result.stats.regionStats.find((r) => r.region === setting.region);
-    if (!stat || stat.placedCells < setting.targetCells) {
-      return false;
-    }
+    if (!stat || stat.placedCells < setting.targetCells) return false;
   }
 
   // 2. 1순위 이하 영역도 모두 충족
@@ -467,17 +562,13 @@ function isOptimal(result: PlacementResult, priority: Priority, regionSettings: 
   for (const group of priorities) {
     for (const setting of group) {
       const stat = result.stats.regionStats.find((r) => r.region === setting.region);
-      if (!stat || stat.placedCells < setting.targetCells) {
-        return false;
-      }
+      if (!stat || stat.placedCells < setting.targetCells) return false;
     }
   }
 
   // 3. 미지정 영역에 배치 없음
   for (const stat of result.stats.regionStats) {
-    if (stat.isForbidden && stat.placedCells > 0) {
-      return false;
-    }
+    if (stat.isForbidden && stat.placedCells > 0) return false;
   }
 
   return true;
@@ -500,7 +591,7 @@ function isBetterResult(a: PlacementResult, b: PlacementResult | null, priority:
   const bRequiredRate = calculateRequiredSatisfactionRate(b, priority);
   if (aRequiredRate !== bRequiredRate) return aRequiredRate > bRequiredRate;
 
-  // 3. 우선순위별 충족률 비교
+  // 3. 우선순위별 충족률 비교 (1순위부터 순서대로)
   const priorities = priority.custom?.priorities ?? [];
   for (let i = 0; i < priorities.length; i++) {
     const aRate = calculateGroupSatisfactionRate(a, priorities[i]);
@@ -525,25 +616,41 @@ function isBetterResult(a: PlacementResult, b: PlacementResult | null, priority:
 class PlacementSearcher {
   private aborted = false;
   private currentBestResult: PlacementResult | null = null;
+  private onProgress?: (progress: number) => void;
+  private onBestFound?: (result: PlacementResult) => void;
+
+  constructor(callbacks: { onProgress?: (progress: number) => void; onBestFound?: (result: PlacementResult) => void }) {
+    this.onProgress = callbacks.onProgress;
+    this.onBestFound = callbacks.onBestFound;
+  }
 
   abort() {
     this.aborted = true;
   }
 
-  private searchRecursive(state: SearchState, ...args: any[]): PlacementResult | null {
-    // 중단 체크
-    if (this.aborted) {
-      return this.currentBestResult;
-    }
+  // checkAbort()와 updateBest()는 searchRecursive에 콜백으로 전달
+  search(blocks: BlockShape[], regionSettings: RegionCellSetting[], priority: Priority): PlacementResult | null {
+    this.aborted = false;
+    this.currentBestResult = null;
 
-    // ... 탐색 로직
-
-    // 중간 결과 저장
-    if (result && isBetterResult(result, this.currentBestResult, priority)) {
-      this.currentBestResult = result;
-    }
+    return findOptimalPlacement(blocks, regionSettings, priority, {
+      shouldAbort: () => this.aborted,
+      onBetterResult: (result) => {
+        this.currentBestResult = result;
+        this.onBestFound?.(result);
+      },
+    });
   }
 }
+
+// findOptimalPlacement 및 searchRecursive는 SearchCallbacks를 추가 파라미터로 받음
+interface SearchCallbacks {
+  shouldAbort: () => boolean;
+  onBetterResult: (result: PlacementResult) => void;
+}
+
+// searchRecursive 내 abort 체크 위치 (3.7절의 루프 시작 전)
+// if (callbacks.shouldAbort()) return currentBest;
 ```
 
 ---
@@ -555,15 +662,16 @@ class PlacementSearcher {
 - 블록 수: N (최대 45)
 - 블록당 변형: 최대 8
 - 배치 가능 위치: 최대 440
-- 이론적 최악: O(8N × 440N) -> 실제로는 가지치기로 대폭 감소
+- 이론적 최악: O(8N × 440N) → 실제로는 가지치기로 대폭 감소
 
 ### 7.2 실제 예상
 
-- 중앙 4칸 시작 제약 -> 초기 탐색 공간 축소
-- 연결성 제약 -> 인접 위치만 탐색
-- 미지정 영역 제약 -> 탐색 공간 추가 축소
-- 칸 수 제약 -> 조기 종료 가능
-- 우선순위 정렬 -> 좋은 해 빨리 발견
+- 그리디 초기 해 → 백트래킹 기준값 확보, 초기부터 유효한 가지치기 가능
+- 중앙 4칸 시작 제약 → 초기 탐색 공간 축소
+- 연결성 제약 → 인접 위치만 탐색
+- 미지정 영역 제약 → 탐색 공간 추가 축소
+- 칸 수 제약 → 조기 종료 가능
+- 우선순위 정렬 → 좋은 해 빨리 발견
 - 예상 탐색 시간: 수 초 ~ 1-2분 (블록 40~45개 기준)
 
 ---
@@ -572,20 +680,25 @@ class PlacementSearcher {
 
 ### Phase 1: 기본 동작
 
-- 블록 변형 생성
-- 좌표 변환 로직
-- 배치 가능 여부 검사 (미지정 영역 포함)
-- 연결성 검사
-- 기본 백트래킹 탐색
+- 블록 변형 생성 (`variants.ts`)
+- 배치 가능 여부 검사 (`placement.ts`)
+- 연결성 검사 (`placement.ts`)
+- 영역별 배치 현황 계산 (`placement.ts`)
 
-### Phase 2: 최적화
+### Phase 2: 탐색
+
+- 그리디 초기 해 생성 (`search.ts`)
+- 기본 백트래킹 탐색 (`search.ts`)
+- 결과 평가 로직 (`search.ts`)
+
+### Phase 3: 최적화
 
 - 가지치기 조건 추가
 - 0순위 충족 가능 여부 검사
 - 탐색 순서 최적화
 - 메모이제이션
 
-### Phase 3: 고도화
+### Phase 4: 고도화
 
 - 병렬 탐색 (Web Worker)
 - 진행률 표시
