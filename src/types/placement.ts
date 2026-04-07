@@ -1,4 +1,14 @@
-import type { OuterStat, InnerStat } from "@/types/board";
+export type OuterStat =
+  | "exp"
+  | "critRate"
+  | "bossDamage"
+  | "normalDamage"
+  | "buffDuration"
+  | "ignoreDefense"
+  | "critDamage"
+  | "statusResist";
+
+export type InnerStat = "str" | "dex" | "int" | "luk" | "hp" | "mp" | "atk" | "matk";
 
 export type RegionStat = OuterStat | InnerStat;
 
@@ -38,7 +48,7 @@ export type Priority =
 export interface BlockPlacement {
   blockIndex: number;
   shapeId: string;
-  position: [number, number];
+  placementOrigin: [number, number];
   rotation: 0 | 90 | 180 | 270;
   flipped: boolean;
   cells: [number, number][];
