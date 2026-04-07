@@ -91,8 +91,8 @@ export default defineConfig([
     rules: {
       'no-restricted-imports': ['error', {
         patterns: [{
-          group: ['@/workers', '@/workers/**', '@/components', '@/components/**'],
-          message: 'hooks/ 는 workers/, components/ 를 import할 수 없습니다.',
+          group: ['@/constants', '@/constants/**', '@/workers', '@/workers/**', '@/components', '@/components/**'],
+          message: 'hooks/ 는 types/, store/, lib/ 만 import할 수 있습니다.',
         }],
       }],
     },
