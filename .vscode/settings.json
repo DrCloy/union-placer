@@ -7,12 +7,11 @@
   "github.copilot.chat.agent.runTasks": true,
 
   // ESLint
-  "eslint.validate": ["typescript", "typescriptreact"],
+  "eslint.probe": ["typescript", "typescriptreact"],
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "explicit"
   },
 
   // TypeScript
-  "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true
+  "js/ts.tsdk.path": "node_modules/typescript/lib"
 }
