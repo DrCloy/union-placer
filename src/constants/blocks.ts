@@ -1,6 +1,10 @@
 import type { BlockShape, Grade, JobGroup } from "@/types/block";
 
-export const BLOCK_SHAPES: readonly BlockShape[] = [
+function createBlockShapes<const T extends readonly BlockShape[]>(blockShapes: T): T {
+  return blockShapes;
+}
+
+export const BLOCK_SHAPES = createBlockShapes([
   {
     id: "common-b",
     grade: "B",
@@ -148,10 +152,12 @@ export const BLOCK_SHAPES: readonly BlockShape[] = [
       [1, 1],
     ],
   },
-] as const;
+] as const);
+
+export type BlockShapeId = (typeof BLOCK_SHAPES)[number]["id"];
 
 export const BLOCK_SHAPE_ID_BY_JOB_GROUP_AND_GRADE: Readonly<
-  Record<JobGroup, Readonly<Record<Grade, string>>>
+  Record<JobGroup, Readonly<Record<Grade, BlockShapeId>>>
 > = {
   warrior: {
     B: "common-b",
@@ -197,9 +203,10 @@ export const BLOCK_SHAPE_ID_BY_JOB_GROUP_AND_GRADE: Readonly<
   },
 } as const;
 
-const blockShapeById: Record<string, BlockShape | undefined> = {};
+const blockShapeById: Record<BlockShapeId, BlockShape> = {} as Record<BlockShapeId, BlockShape>;
 for (const blockShape of BLOCK_SHAPES) {
   blockShapeById[blockShape.id] = blockShape;
 }
 
-export const BLOCK_SHAPE_BY_ID: Readonly<Record<string, BlockShape | undefined>> = blockShapeById;
+export const BLOCK_SHAPE_BY_ID: Readonly<Record<BlockShapeId, BlockShape>> =
+  Object.freeze(blockShapeById);
