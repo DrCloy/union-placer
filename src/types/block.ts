@@ -4,7 +4,6 @@ export type Grade = "B" | "A" | "S" | "SS" | "SSS";
 
 export interface BlockShape {
   id: string;
-  jobGroup: JobGroup;
   grade: Grade;
   cells: [number, number][];
 }

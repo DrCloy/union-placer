@@ -35,7 +35,7 @@ export type InnerStat = "str" | "dex" | "int" | "luk" | "hp" | "mp" | "atk" | "m
 export interface OuterRegion {
   id: OuterRegionId;
   direction: Direction;
-  cells: [number, number][];
+  cells: readonly [number, number][];
   maxCells: 40;
   stat: OuterStat;
 }
@@ -43,7 +43,7 @@ export interface OuterRegion {
 export interface InnerRegion {
   id: InnerRegionId;
   direction: Direction;
-  cells: [number, number][];
+  cells: readonly [number, number][];
   maxCells: 15;
   stat: InnerStat;
 }
@@ -52,6 +52,6 @@ export interface UnionBoard {
   width: 22;
   height: 20;
   totalCells: 440;
-  innerRegions: InnerRegion[];
-  outerRegions: OuterRegion[];
+  innerRegions: readonly InnerRegion[];
+  outerRegions: readonly OuterRegion[];
 }
