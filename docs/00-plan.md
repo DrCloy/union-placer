@@ -6,8 +6,8 @@
 | ----------------------- | -------------------------- | ------------------------------- |
 | Phase 0 — 하네스 인프라 | ✅ 완료                    | —                               |
 | Phase D — 문서 보완     | ✅ 완료                    | —                               |
-| Phase UI — 디자인       | 🔄 설계 완료 / 작업 미시작 | UI-1 Stitch Stage 1 (직접 작업) |
-| Phase 1~8 — 구현        | ⬜ 미시작                  | Phase 0·D·UI 완료 후 시작       |
+| Phase UI — 디자인       | ✅ 완료                    | —                                     |
+| Phase 1~8 — 구현        | ⬜ 미시작                  | Phase UI 완료 후 시작           |
 
 **권장 진행 순서:** ~~Phase D~~ → Phase UI → Phase 1~8
 
@@ -121,14 +121,14 @@ Stitch 3단계 파이프라인. UI-1·3·5는 직접 작업, 나머지는 에이
 
 | #    | 작업                              | 담당          | 상태 |
 | ---- | --------------------------------- | ------------- | ---- |
-| UI-1 | Stage 1: 디자인 토큰 화면 생성    | 직접 (Stitch) | ⬜   |
-| UI-2 | Stage 1 결과 → tokens.md 업데이트 | 에이전트      | ⬜   |
-| UI-3 | Stage 2: 컴포넌트 시트 생성       | 직접 (Stitch) | ⬜   |
-| UI-4 | Stage 2 결과 → components.md 작성 | 에이전트      | ⬜   |
-| UI-5 | Stage 3: 페이지 목업 5장 생성     | 직접 (Stitch) | ⬜   |
-| UI-6 | Stage 3 결과 → wireframes.md 작성 | 에이전트      | ⬜   |
-| UI-7 | Storybook 설치 + 기본 설정        | 에이전트      | ⬜   |
-| UI-8 | Playwright 설치 + E2E 기본 설정   | 에이전트      | ⬜   |
+| UI-1 | Stage 1: 디자인 토큰 화면 생성    | 직접 (Stitch) | ✅   |
+| UI-2 | Stage 1 결과 → tokens.md 업데이트 | 에이전트      | ✅   |
+| UI-3 | Stage 2: 컴포넌트 시트 생성       | 직접 (Stitch) | ✅   |
+| UI-4 | Stage 2 결과 → components.md 작성 | 에이전트      | ✅   |
+| UI-5 | Stage 3: 페이지 목업 5장 생성     | 직접 (Stitch) | ✅   |
+| UI-6 | Stage 3 결과 → wireframes.md 작성 | 에이전트      | ✅   |
+| UI-7 | Storybook 설치 + 기본 설정        | 에이전트      | ✅   |
+| UI-8 | Playwright 설치 + E2E 기본 설정   | 에이전트      | ✅   |
 
 ---
 
