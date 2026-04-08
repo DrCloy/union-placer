@@ -20,7 +20,7 @@ Stage 3: 페이지 목업 5장   →  design/wireframes.md
 
 **목표:** 컬러·타이포·간격·상태를 한 화면에서 확인하고 토큰 확정
 
-**Stitch 프롬프트:** → [stitch-prompts/stage1-tokens.md](stitch-prompts/stage1-tokens.md) (작성 예정)
+**Stitch 프롬프트:** → [stitch-prompts/stage1-tokens.md](stitch-prompts/stage1-tokens.md)
 
 **산출물:**
 - Figma export (참고용)
@@ -32,7 +32,7 @@ Stage 3: 페이지 목업 5장   →  design/wireframes.md
 
 **목표:** 재사용 컴포넌트를 모든 상태별로 디자인
 
-**Stitch 프롬프트:** → [stitch-prompts/stage2-components.md](stitch-prompts/stage2-components.md) (작성 예정)
+**Stitch 프롬프트:** → [stitch-prompts/stage2-components.md](stitch-prompts/stage2-components.md)
 
 **컴포넌트 목록 (페이지 분석 기반):**
 
@@ -60,11 +60,12 @@ Stage 3: 페이지 목업 5장   →  design/wireframes.md
 | 컴포넌트 | 상태 | 비고 |
 |---------|------|------|
 | `CharacterCard` | unselected / selected / hover | 좌측 직업 색상 바 |
-| `BlockPreview` | 직업군 × 등급 조합 | 블록 모양 미리보기 |
 | `FilterPills` | 전체/B/A/S/SS/SSS | 등급 필터 |
+| `BlockSummary` | — | 블록 카운팅 요약 + 총 칸 수 |
 | `RegionRow` | default / filled / error | 영역명 + 숫자 입력 |
 | `PriorityColumn` | — | 0순위 / 1순위이하 / 미지정 |
 | `DraggableRegionItem` | idle / dragging | 우선순위 드래그 항목 |
+| `SearchControls` | idle / searching | 배치 시작 / 중단 버튼 |
 | `UnionBoard` | searching / complete | 22×20 격자 |
 | `BoardCell` | empty / placed / forbidden | 개별 셀 |
 | `RegionLabel` | — | 보드 외곽 영역 이름 |
@@ -81,7 +82,7 @@ Stage 3: 페이지 목업 5장   →  design/wireframes.md
 
 **목표:** 실제 5개 화면의 전체 레이아웃 디자인
 
-**Stitch 프롬프트:** → [stitch-prompts/stage3-pages.md](stitch-prompts/stage3-pages.md) (작성 예정)
+**Stitch 프롬프트:** → [stitch-prompts/stage3-pages.md](stitch-prompts/stage3-pages.md)
 
 **화면 목록:**
 

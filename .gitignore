@@ -33,3 +33,6 @@ dist-ssr
 
 # Reference images (design references, not source code)
 references/
+
+*storybook.log
+storybook-static

@@ -1,3 +1,4 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 language: "ko-KR"
 
 reviews:
@@ -7,8 +8,6 @@ reviews:
   # 불필요한 부가 기능 비활성화
   high_level_summary: false        # PR description 자동 수정 금지
   poem: false                      # 시(poem) 생성 금지
-  sequence_diagrams: false         # 시퀀스 다이어그램 생성 금지
-  changed_files_summary: false     # 변경 파일 요약 금지
   collapse_walkthrough: true       # walkthrough는 접힌 상태로
 
   auto_review:
