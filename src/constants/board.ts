@@ -9,7 +9,8 @@ import type {
   UnionBoard,
 } from "@/types/board";
 
-// Coordinate is [x, y] where x is row(vertical) and y is column(horizontal).
+// Board coordinate tuple is [row, col].
+// It is intentionally not screen-style [x, y].
 // This follows project/domain board coordinates (center cells: (9,10), (9,11), (10,10), (10,11)).
 type Coordinate = [number, number];
 
@@ -19,8 +20,8 @@ const INNER_REGION_MAX_CELLS = 15 as const;
 const OUTER_REGION_MAX_CELLS = 40 as const;
 const DIRECTION_CAPACITY = INNER_REGION_MAX_CELLS + OUTER_REGION_MAX_CELLS;
 
-const CENTER_X = 9.5;
-const CENTER_Y = 10.5;
+const CENTER_ROW = 9.5;
+const CENTER_COL = 10.5;
 
 export const CENTER_CELLS: readonly Coordinate[] = [
   [9, 10],
@@ -83,8 +84,8 @@ interface CellPreference {
   distance: number;
 }
 
-function toCellKey([x, y]: Coordinate): string {
-  return `${x},${y}`;
+function toCellKey([row, col]: Coordinate): string {
+  return `${row},${col}`;
 }
 
 function toInnerRegionId(direction: Direction): InnerRegionId {
@@ -95,16 +96,16 @@ function toOuterRegionId(direction: Direction): OuterRegionId {
   return `outer-${direction}` as OuterRegionId;
 }
 
-function getDistanceFromCenter([x, y]: Coordinate): number {
-  return Math.hypot(x - CENTER_X, y - CENTER_Y);
+function getDistanceFromCenter([row, col]: Coordinate): number {
+  return Math.hypot(row - CENTER_ROW, col - CENTER_COL);
 }
 
 function createAllBoardCells(): Coordinate[] {
   const cells: Coordinate[] = [];
 
-  for (let x = 0; x < BOARD_WIDTH; x += 1) {
-    for (let y = 0; y < BOARD_HEIGHT; y += 1) {
-      cells.push([x, y]);
+  for (let row = 0; row < BOARD_WIDTH; row += 1) {
+    for (let col = 0; col < BOARD_HEIGHT; col += 1) {
+      cells.push([row, col]);
     }
   }
 
@@ -117,15 +118,16 @@ function getDirectionPreferences(cell: Coordinate): DirectionPreference[] {
     return [{ direction: pinnedDirection, score: Number.POSITIVE_INFINITY }];
   }
 
-  const [x, y] = cell;
-  const relativeX = x - CENTER_X;
-  const relativeY = y - CENTER_Y;
-  const relativeMagnitude = Math.hypot(relativeX, relativeY) || 1;
+  const [row, col] = cell;
+  const relativeRow = row - CENTER_ROW;
+  const relativeCol = col - CENTER_COL;
+  const relativeMagnitude = Math.hypot(relativeRow, relativeCol) || 1;
 
   return DIRECTION_ORDER.map((direction) => {
     const [dirX, dirY] = DIRECTION_VECTOR[direction];
     const directionMagnitude = Math.hypot(dirX, dirY);
-    const score = (relativeX * dirX + relativeY * dirY) / (relativeMagnitude * directionMagnitude);
+    const score =
+      (relativeRow * dirX + relativeCol * dirY) / (relativeMagnitude * directionMagnitude);
 
     return {
       direction,
