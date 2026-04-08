@@ -150,7 +150,9 @@ export const BLOCK_SHAPES: readonly BlockShape[] = [
   },
 ] as const;
 
-export const BLOCK_SHAPE_ID_BY_JOB_GROUP_AND_GRADE: Readonly<Record<JobGroup, Readonly<Record<Grade, string>>>> = {
+export const BLOCK_SHAPE_ID_BY_JOB_GROUP_AND_GRADE: Readonly<
+  Record<JobGroup, Readonly<Record<Grade, string>>>
+> = {
   warrior: {
     B: "common-b",
     A: "common-a",
@@ -195,6 +197,9 @@ export const BLOCK_SHAPE_ID_BY_JOB_GROUP_AND_GRADE: Readonly<Record<JobGroup, Re
   },
 } as const;
 
-export const BLOCK_SHAPE_BY_ID: Readonly<Record<string, BlockShape>> = Object.fromEntries(
-  BLOCK_SHAPES.map((shape) => [shape.id, shape]),
-);
+const blockShapeById: Record<string, BlockShape | undefined> = {};
+for (const blockShape of BLOCK_SHAPES) {
+  blockShapeById[blockShape.id] = blockShape;
+}
+
+export const BLOCK_SHAPE_BY_ID: Readonly<Record<string, BlockShape | undefined>> = blockShapeById;

@@ -103,8 +103,8 @@ function getDistanceFromCenter([row, col]: Coordinate): number {
 function createAllBoardCells(): Coordinate[] {
   const cells: Coordinate[] = [];
 
-  for (let row = 0; row < BOARD_WIDTH; row += 1) {
-    for (let col = 0; col < BOARD_HEIGHT; col += 1) {
+  for (let row = 0; row < BOARD_HEIGHT; row += 1) {
+    for (let col = 0; col < BOARD_WIDTH; col += 1) {
       cells.push([row, col]);
     }
   }
