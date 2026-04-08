@@ -1,11 +1,7 @@
 import React from 'react';
 
-import { Header } from '@/stories/Header';
+import { Header, type User } from '@/stories/Header';
 import '@/stories/page.css';
-
-type User = {
-  name: string;
-};
 
 export const Page: React.FC = () => {
   const [user, setUser] = React.useState<User>();

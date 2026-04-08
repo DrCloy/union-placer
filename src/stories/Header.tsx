@@ -1,8 +1,8 @@
 import React from 'react';
 import { Button } from '@/stories/Button';
-import './header.css';
+import '@/stories/header.css';
 
-type User = {
+export type User = {
   name: string;
 };
 
