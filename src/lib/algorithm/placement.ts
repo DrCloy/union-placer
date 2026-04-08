@@ -8,14 +8,17 @@ import { INNER_REGIONS, OUTER_REGIONS } from "@/constants/board";
 // ---------------------------------------------------------------------------
 
 /**
- * Lightweight mutable placement state used exclusively inside the algorithm.
+ * Lightweight immutable-style placement state used exclusively inside the algorithm.
  * `occupied` is a Set of "row,col" keys representing placed cells.
+ * `targetPlacedCells` counts only cells placed in regions with targetCells > 0,
+ * excluding connectivity cells in unspecified inner regions.
  */
 export interface AlgoState {
   occupied: Set<string>;
   placements: BlockPlacement[];
   remainingBlocks: number[]; // indices into the blocks array passed to search
   placedCells: number;
+  targetPlacedCells: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -91,6 +94,16 @@ export function countCellsInRegion(occupied: Set<string>, region: RegionStat): n
   return count;
 }
 
+export function countEmptyCellsInRegion(occupied: Set<string>, region: RegionStat): number {
+  const regionCells = REGION_CELLS.get(region);
+  if (regionCells === undefined) return 0;
+  let count = 0;
+  for (const key of regionCells) {
+    if (!occupied.has(key)) count += 1;
+  }
+  return count;
+}
+
 // ---------------------------------------------------------------------------
 // Placement check logic (3-3)
 // ---------------------------------------------------------------------------
@@ -124,19 +137,35 @@ export function canPlace(
   });
 }
 
+/**
+ * Places a block on the board and returns a new state.
+ * Pass `regionSettings` so that `targetPlacedCells` is tracked correctly.
+ * Omit `regionSettings` (or pass `[]`) only in tests that don't need accurate tracking.
+ */
 export function placeBlock(
   state: AlgoState,
   blockIdx: number,
   shapeId: string,
   variant: BlockVariant,
   position: [number, number],
+  regionSettings: RegionCellSetting[] = [],
 ): AlgoState {
   const [pRow, pCol] = position;
   const cells: [number, number][] = variant.cells.map(([dRow, dCol]) => [pRow + dRow, pCol + dCol]);
 
   const newOccupied = new Set(state.occupied);
+  let targetCellsAdded = 0;
+
   for (const [row, col] of cells) {
-    newOccupied.add(`${row},${col}`);
+    const key = `${row},${col}`;
+    newOccupied.add(key);
+    const info = CELL_REGION_INFO.get(key);
+    if (info !== undefined) {
+      const setting = regionSettings.find((s) => s.region === info.stat);
+      if (setting !== undefined && setting.targetCells > 0) {
+        targetCellsAdded += 1;
+      }
+    }
   }
 
   const placement: BlockPlacement = {
@@ -153,6 +182,7 @@ export function placeBlock(
     placements: [...state.placements, placement],
     remainingBlocks: state.remainingBlocks.filter((idx) => idx !== blockIdx),
     placedCells: state.placedCells + cells.length,
+    targetPlacedCells: state.targetPlacedCells + targetCellsAdded,
   };
 }
 
@@ -268,16 +298,6 @@ export function getAdjacentPositions(
   });
 }
 
-export function countEmptyCellsInRegion(occupied: Set<string>, region: RegionStat): number {
-  const regionCells = REGION_CELLS.get(region);
-  if (regionCells === undefined) return 0;
-  let count = 0;
-  for (const key of regionCells) {
-    if (!occupied.has(key)) count += 1;
-  }
-  return count;
-}
-
 // ---------------------------------------------------------------------------
 // State factory
 // ---------------------------------------------------------------------------
@@ -288,5 +308,6 @@ export function createEmptyState(blockCount: number): AlgoState {
     placements: [],
     remainingBlocks: Array.from({ length: blockCount }, (_, idx) => idx),
     placedCells: 0,
+    targetPlacedCells: 0,
   };
 }

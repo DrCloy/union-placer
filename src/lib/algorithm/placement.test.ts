@@ -249,6 +249,7 @@ describe("createResult", () => {
       placements: [],
       remainingBlocks: [],
       placedCells: 1,
+      targetPlacedCells: 0,
     };
     const result = createResult(state, settings);
     expect(result.success).toBe(false);

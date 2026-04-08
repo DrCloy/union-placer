@@ -153,6 +153,7 @@ function buildGreedySolution(
     blocks[firstCandidate.blockIdx].id,
     firstCandidate.variant,
     firstCandidate.position,
+    regionSettings,
   );
 
   // Remaining blocks: greedy best at each step
@@ -167,6 +168,7 @@ function buildGreedySolution(
       blocks[candidate.blockIdx].id,
       candidate.variant,
       candidate.position,
+      regionSettings,
     );
   }
 
@@ -365,16 +367,17 @@ function searchRecursive(
 ): PlacementResult | null {
   if (callbacks.shouldAbort?.()) return currentBest;
 
-  if (state.placedCells >= totalTargetCells) {
+  // Terminal: all target-region cells are filled
+  if (state.targetPlacedCells >= totalTargetCells) {
     return createResult(state, regionSettings);
   }
 
-  const maxPossibleCells =
-    state.placedCells +
-    state.remainingBlocks.reduce((sum, idx) => sum + blocks[idx].cells.length, 0);
-  if (maxPossibleCells < totalTargetCells) return currentBest;
-
-  if (state.placedCells > totalTargetCells) return currentBest;
+  // Pruning: even placing all remaining blocks can't reach the target
+  const remainingBlockCells = state.remainingBlocks.reduce(
+    (sum, idx) => sum + blocks[idx].cells.length,
+    0,
+  );
+  if (state.targetPlacedCells + remainingBlockCells < totalTargetCells) return currentBest;
 
   if (!canSatisfyRequired(state, blocks, regionSettings, customPriority)) return currentBest;
 
@@ -389,7 +392,7 @@ function searchRecursive(
       for (const variant of allVariants[blockIdx]) {
         if (!canPlace(state.occupied, variant, position, regionSettings)) continue;
 
-        const newState = placeBlock(state, blockIdx, blocks[blockIdx].id, variant, position);
+        const newState = placeBlock(state, blockIdx, blocks[blockIdx].id, variant, position, regionSettings);
 
         if (!isConnected(newState.occupied)) continue;
 
@@ -453,6 +456,7 @@ export function findOptimalPlacement(
           blocks[blockIdx].id,
           variant,
           centerPos,
+          regionSettings,
         );
 
         const result = searchRecursive(
