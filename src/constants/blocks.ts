@@ -56,8 +56,8 @@ export const BLOCK_SHAPES: readonly BlockShape[] = [
     id: "ss-archer",
     grade: "SS",
     cells: [
-      [-1, 0],
       [0, 0],
+      [-1, 0],
       [1, 0],
       [2, 0],
     ],
@@ -66,8 +66,8 @@ export const BLOCK_SHAPES: readonly BlockShape[] = [
     id: "ss-thief",
     grade: "SS",
     cells: [
-      [0, -1],
       [0, 0],
+      [0, -1],
       [0, 1],
       [1, 1],
     ],
@@ -76,8 +76,8 @@ export const BLOCK_SHAPES: readonly BlockShape[] = [
     id: "ss-pirate",
     grade: "SS",
     cells: [
-      [0, -1],
       [0, 0],
+      [0, -1],
       [1, 0],
       [1, 1],
     ],
@@ -108,9 +108,9 @@ export const BLOCK_SHAPES: readonly BlockShape[] = [
     id: "sss-archer",
     grade: "SSS",
     cells: [
+      [0, 0],
       [0, -2],
       [0, -1],
-      [0, 0],
       [0, 1],
       [0, 2],
     ],
@@ -119,8 +119,8 @@ export const BLOCK_SHAPES: readonly BlockShape[] = [
     id: "sss-thief",
     grade: "SSS",
     cells: [
-      [0, -1],
       [0, 0],
+      [0, -1],
       [-1, 1],
       [0, 1],
       [1, 1],
@@ -130,8 +130,8 @@ export const BLOCK_SHAPES: readonly BlockShape[] = [
     id: "sss-pirate",
     grade: "SSS",
     cells: [
-      [0, -1],
       [0, 0],
+      [0, -1],
       [1, 0],
       [1, 1],
       [1, 2],
@@ -141,9 +141,9 @@ export const BLOCK_SHAPES: readonly BlockShape[] = [
     id: "sss-xenon",
     grade: "SSS",
     cells: [
+      [0, 0],
       [-1, -1],
       [0, -1],
-      [0, 0],
       [0, 1],
       [1, 1],
     ],
