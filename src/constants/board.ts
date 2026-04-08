@@ -9,6 +9,8 @@ import type {
   UnionBoard,
 } from "@/types/board";
 
+// Coordinate is [x, y] where x is row(vertical) and y is column(horizontal).
+// This follows project/domain board coordinates (center cells: (9,10), (9,11), (10,10), (10,11)).
 type Coordinate = [number, number];
 
 const BOARD_WIDTH = 22 as const;
@@ -187,7 +189,9 @@ function createDirectionCellBuckets(): Record<Direction, Coordinate[]> {
   };
 
   for (const cellPreference of createCellPreferences()) {
-    const assignedDirection = cellPreference.preferences.find(({ direction }) => capacities[direction] > 0)?.direction;
+    const assignedDirection = cellPreference.preferences.find(
+      ({ direction }) => capacities[direction] > 0,
+    )?.direction;
 
     if (assignedDirection === undefined) {
       throw new Error("Unable to assign board cell to a direction bucket");
@@ -224,9 +228,19 @@ function sortByDistance(cells: Coordinate[]): Coordinate[] {
 }
 
 const DIRECTION_CELL_BUCKETS = createDirectionCellBuckets();
+const SORTED_DIRECTION_CELL_BUCKETS: Readonly<Record<Direction, Coordinate[]>> = {
+  1: sortByDistance(DIRECTION_CELL_BUCKETS[1]),
+  2: sortByDistance(DIRECTION_CELL_BUCKETS[2]),
+  4: sortByDistance(DIRECTION_CELL_BUCKETS[4]),
+  5: sortByDistance(DIRECTION_CELL_BUCKETS[5]),
+  7: sortByDistance(DIRECTION_CELL_BUCKETS[7]),
+  8: sortByDistance(DIRECTION_CELL_BUCKETS[8]),
+  10: sortByDistance(DIRECTION_CELL_BUCKETS[10]),
+  11: sortByDistance(DIRECTION_CELL_BUCKETS[11]),
+};
 
 export const INNER_REGIONS: readonly InnerRegion[] = DIRECTION_ORDER.map((direction) => {
-  const sortedCells = sortByDistance(DIRECTION_CELL_BUCKETS[direction]);
+  const sortedCells = SORTED_DIRECTION_CELL_BUCKETS[direction];
 
   return {
     id: toInnerRegionId(direction),
@@ -238,7 +252,7 @@ export const INNER_REGIONS: readonly InnerRegion[] = DIRECTION_ORDER.map((direct
 });
 
 export const OUTER_REGIONS: readonly OuterRegion[] = DIRECTION_ORDER.map((direction) => {
-  const sortedCells = sortByDistance(DIRECTION_CELL_BUCKETS[direction]);
+  const sortedCells = SORTED_DIRECTION_CELL_BUCKETS[direction];
 
   return {
     id: toOuterRegionId(direction),
