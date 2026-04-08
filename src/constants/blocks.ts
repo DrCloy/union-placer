@@ -205,6 +205,9 @@ export const BLOCK_SHAPE_ID_BY_JOB_GROUP_AND_GRADE: Readonly<
 
 const blockShapeById: Record<BlockShapeId, BlockShape> = {} as Record<BlockShapeId, BlockShape>;
 for (const blockShape of BLOCK_SHAPES) {
+  if (blockShape.id in blockShapeById) {
+    throw new Error(`Duplicate block shape id: ${blockShape.id}`);
+  }
   blockShapeById[blockShape.id] = blockShape;
 }
 
