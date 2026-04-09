@@ -80,12 +80,16 @@ Phase 2 (constants/)
 
 **입력 조건:** Phase 1·2 완료
 
-| #   | 태스크    | 파일                   | 설명                                                          |
-| --- | --------- | ---------------------- | ------------------------------------------------------------- |
-| 4-1 | 블록 유틸 | `src/lib/blocks.ts`    | 직업군·레벨 → `BlockShape` 변환, `BlockCount` 집계            |
-| 4-2 | 보드 유틸 | `src/lib/board.ts`     | 좌표 → 영역 매핑, 영역 메타데이터 조회                        |
-| 4-3 | API 호출  | `src/lib/api/nexon.ts` | `fetchUnionInfo(nickname, apiKey?)` — `/api/nexon/union` 호출 |
-| 4-4 | API 타입  | `src/lib/api/types.ts` | Nexon API 응답 타입 (외부 경계용)                             |
+| #   | 태스크         | 파일                   | 설명                                                                                                  |
+| --- | -------------- | ---------------------- | ----------------------------------------------------------------------------------------------------- |
+| 4-1 | 블록 유틸      | `src/lib/blocks.ts`    | 직업군·레벨 → `BlockShape` 변환, `BlockCount` 집계                                                    |
+| 4-2 | 보드 유틸      | `src/lib/board.ts`     | 좌표 → 영역 매핑, 영역 메타데이터 조회                                                                |
+| 4-3 | API 클라이언트 | `src/lib/api/nexon.ts` | `fetchUnionInfo`, `/api/nexon/union` 호출, query 구성, 응답/에러 정규화                               |
+| 4-4 | API 경계 타입  | `src/types/nexon.ts`   | `NexonUnionInfoResponse`, `NexonUnionResponse`, `NexonUnionRaiderResponse`, `NexonUnionApiError` 정의 |
+
+참고 문서: `docs/09-api-contract.md`
+
+비고: 실제 Nexon Open API endpoint별 프록시 구현과 응답 조합은 Phase 8-1에서 담당
 
 **완료 조건:** `npm run check` 통과, import 레이어 위반 없음
 
@@ -153,14 +157,31 @@ Phase 2 (constants/)
 
 **입력 조건:** Phase 4 완료
 
-| #   | 태스크                     | 파일                 | 설명                                  |
-| --- | -------------------------- | -------------------- | ------------------------------------- |
-| 8-1 | Vercel Serverless Function | `api/nexon/union.ts` | OCID 조회 + 유니온 레이더 조회 프록시 |
-| 8-2 | Vercel 설정                | `vercel.json`        | 빌드, 함수 메모리/타임아웃, 환경변수  |
-| 8-3 | 환경 변수 설정             | Vercel 대시보드      | `NEXON_API_KEY` 등록                  |
-| 8-4 | 프로덕션 빌드 검증         | —                    | `npm run build` 통과 확인             |
+| #   | 태스크                     | 파일             | 설명                                                                 |
+| --- | -------------------------- | ---------------- | -------------------------------------------------------------------- |
+| 8-1 | Vercel Serverless Function | `api/nexon/*.ts` | `/id`, `/character/list`, `/user/union`, `/user/union-raider` 프록시 |
+| 8-2 | Vercel 설정                | `vercel.json`    | 빌드, 함수 메모리/타임아웃, 환경변수                                 |
+| 8-3 | 환경 변수 설정             | Vercel 대시보드  | `NEXON_API_KEY` 등록                                                 |
+| 8-4 | 프로덕션 빌드 검증         | —                | `npm run build` 통과 확인                                            |
 
 **완료 조건:** `npm run build` 통과, Vercel 배포 성공
+
+---
+
+## 운영 태스크 — 스타일 정비 (반복 수행)
+
+기능 PR의 리뷰/수정이 완료되고 충돌이 없을 때 수행한다.
+
+| #   | 태스크              | 파일           | 설명                                                   |
+| --- | ------------------- | -------------- | ------------------------------------------------------ |
+| M-1 | main 최신화         | —              | `git checkout main` → `git pull --ff-only origin main` |
+| M-2 | 정비 브랜치 생성    | —              | `git checkout -b phase/style-lint-prettier`            |
+| M-3 | 스타일 설정 변경    | 설정 파일 일체 | ESLint/Prettier 설정 추가 또는 조정                    |
+| M-4 | 전체 코드 일괄 적용 | `src/**` 외    | `eslint --fix`, `prettier --write` 실행                |
+| M-5 | 검증 및 분리 커밋   | —              | `npm run check` 통과, 설정 커밋/적용 커밋 분리 권장    |
+| M-6 | 스타일 정비 전용 PR | —              | 기능 변경 없이 스타일 변경만 포함한 PR 생성            |
+
+**완료 조건:** `npm run check` 통과, 기능 동작 변경 없음
 
 ---
 
