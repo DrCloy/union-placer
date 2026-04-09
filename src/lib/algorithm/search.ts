@@ -276,6 +276,13 @@ function countForbiddenViolations(regionStats: RegionPlacementStat[]): number {
     .reduce((sum, s) => sum + s.placedCells, 0);
 }
 
+function countEffectiveFilled(regionStats: RegionPlacementStat[]): number {
+  return regionStats.reduce(
+    (sum, stat) => sum + Math.min(stat.placedCells, stat.targetCells),
+    0,
+  );
+}
+
 export function isOptimal(
   result: PlacementResult,
   customPriority: CustomPriority,
@@ -328,6 +335,10 @@ export function isBetterResult(
     if (cRate !== bRate) return cRate > bRate;
   }
 
+  const cEffective = countEffectiveFilled(cStats);
+  const bEffective = countEffectiveFilled(bStats);
+  if (cEffective !== bEffective) return cEffective > bEffective;
+
   const cForbidden = countForbiddenViolations(cStats);
   const bForbidden = countForbiddenViolations(bStats);
   if (cForbidden !== bForbidden) return cForbidden < bForbidden;
@@ -355,15 +366,12 @@ function maxFillableInRegion(
 function canSatisfyRequired(
   state: AlgoState,
   blocks: BlockShape[],
-  regionSettings: RegionCellSetting[],
+  _regionSettings: RegionCellSetting[],
   customPriority: CustomPriority,
 ): boolean {
   for (const req of customPriority.required) {
-    const setting = regionSettings.find((s) => s.region === req.region);
-    if (setting === undefined) continue;
-
     const alreadyPlaced = countCellsInRegion(state.occupied, req.region);
-    const remainingNeeded = setting.targetCells - alreadyPlaced;
+    const remainingNeeded = req.targetCells - alreadyPlaced;
     if (remainingNeeded <= 0) continue;
 
     if (maxFillableInRegion(state, blocks, req.region) < remainingNeeded) return false;
@@ -413,7 +421,10 @@ function searchRecursive(
   currentBest: PlacementResult | null,
   callbacks: SearchCallbacks,
 ): PlacementResult | null {
-  if (callbacks.shouldAbort?.()) return currentBest;
+  if (callbacks.shouldAbort?.()) {
+    const partial = createResult(state, regionSettings);
+    return isBetterResult(partial, currentBest, customPriority) ? partial : currentBest;
+  }
 
   const effectivePlaced = computeEffectiveTargetCells(state.occupied, regionSettings);
 
@@ -435,8 +446,9 @@ function searchRecursive(
   }
 
   if (!canSatisfyRequired(state, blocks, regionSettings, customPriority)) {
-    const partial = createResult(state, regionSettings);
-    return isBetterResult(partial, currentBest, customPriority) ? partial : currentBest;
+    // Required region is infeasible for this branch — abandon without saving partial,
+    // since remaining blocks could still improve the result in another branch.
+    return currentBest;
   }
 
   let best = currentBest;

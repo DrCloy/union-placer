@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BlockVariant } from "@/types/block";
-import type { RegionCellSetting } from "@/types/placement";
+import type { OuterStat, RegionCellSetting } from "@/types/placement";
 import {
   canPlace,
   calculateRegionStats,
@@ -53,21 +53,17 @@ describe("getRegionAt", () => {
 // isForbiddenRegion
 // ---------------------------------------------------------------------------
 describe("isForbiddenRegion", () => {
-  const expOuterRegionSetting: RegionCellSetting = {
-    region: "exp",
-    targetCells: 40,
-    maxCells: 40,
-    isOuter: true,
-  };
-
   it("outer region with target > 0 is not forbidden", () => {
-    // Find a cell in the 'exp' (direction 1) outer region
-    // Direction 1 outer cells are far from center
-    // We know top-right area cells belong to exp outer region
-    const regionSettings = [expOuterRegionSetting];
-    // Check some outer region cell — we'll just test inner cells aren't forbidden
-    const innerCell: [number, number] = [9, 10]; // inner region cell
-    expect(isForbiddenRegion(innerCell[0], innerCell[1], regionSettings)).toBe(false);
+    // (1,12) is in an outer region; a setting with targetCells > 0 must NOT be forbidden
+    const stat = getRegionAt(1, 12);
+    expect(stat).not.toBeNull();
+    const setting: RegionCellSetting = {
+      region: stat as OuterStat,
+      targetCells: 40,
+      maxCells: 40,
+      isOuter: true,
+    };
+    expect(isForbiddenRegion(1, 12, [setting])).toBe(false);
   });
 
   it("inner region is never forbidden regardless of settings", () => {
@@ -77,11 +73,10 @@ describe("isForbiddenRegion", () => {
   });
 
   it("outer region with targetCells=0 is forbidden", () => {
-    // Cell (1, 12) should be in an outer region — let's find its stat first
     const stat = getRegionAt(1, 12);
-    if (stat === null) return; // skip if not in a region
+    expect(stat).not.toBeNull();
     const zeroSetting: RegionCellSetting = {
-      region: stat as "exp",
+      region: stat as OuterStat,
       targetCells: 0,
       maxCells: 40,
       isOuter: true,
@@ -90,14 +85,8 @@ describe("isForbiddenRegion", () => {
   });
 
   it("outer region not in settings is forbidden", () => {
-    // Cell in outer region with empty settings list
     const stat = getRegionAt(1, 12);
-    if (stat === null) return;
-    const info = getRegionAt(1, 12);
-    if (info === null) return;
-    // Check that a cell known to be in an outer region is forbidden with empty settings
-    // We need to verify the cell IS in an outer region first
-    // Direction 1 = exp, outer cells: far top-right
+    expect(stat).not.toBeNull();
     expect(isForbiddenRegion(1, 12, [])).toBe(true);
   });
 });
@@ -243,9 +232,9 @@ describe("createResult", () => {
     // Cell (1,12) is in an outer region; mark it forbidden (targetCells=0, isOuter=true)
     const occupied = new Set(["1,12"]);
     const stat = getRegionAt(1, 12);
-    if (stat === null) return; // guard: skip if layout changes
+    expect(stat).not.toBeNull();
     const settings: RegionCellSetting[] = [
-      { region: stat, targetCells: 0, maxCells: 40, isOuter: true } as RegionCellSetting,
+      { region: stat as OuterStat, targetCells: 0, maxCells: 40, isOuter: true },
     ];
     const state = {
       occupied,
