@@ -45,5 +45,10 @@ export async function fetchUnionInfo(
     throw new Error(createApiErrorMessage(response.status, responseBody));
   }
 
-  return (await response.json()) as NexonUnionInfoResponse;
+  try {
+    return (await response.json()) as NexonUnionInfoResponse;
+  } catch (parseError) {
+    const message = parseError instanceof Error ? parseError.message : String(parseError);
+    throw new Error(`Failed to parse JSON response: ${message}`);
+  }
 }

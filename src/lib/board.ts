@@ -1,6 +1,6 @@
-import { CENTER_CELLS, INNER_REGIONS, OUTER_REGIONS } from "@/constants/board";
 import type { Direction, InnerRegionId, OuterRegionId } from "@/types/board";
 import type { RegionStat } from "@/types/placement";
+import { CENTER_CELLS, INNER_REGIONS, OUTER_REGIONS } from "@/constants/board";
 
 type Coordinate = readonly [number, number];
 
@@ -28,10 +28,19 @@ for (const region of INNER_REGIONS) {
     regionId: region.id,
   };
 
+  if (regionMetaByStat.has(region.stat)) {
+    throw new Error(`Duplicate region stat found in INNER_REGIONS: ${region.stat}`);
+  }
   regionMetaByStat.set(region.stat, meta);
 
   for (const cell of region.cells) {
-    regionByCellKey.set(fetchCellKey(cell), region.stat);
+    const cellKey = fetchCellKey(cell);
+    if (regionByCellKey.has(cellKey)) {
+      throw new Error(
+        `Duplicate cell mapping in INNER_REGIONS: cell [${cell[0]}, ${cell[1]}] already mapped to region`,
+      );
+    }
+    regionByCellKey.set(cellKey, region.stat);
   }
 }
 
@@ -44,10 +53,19 @@ for (const region of OUTER_REGIONS) {
     regionId: region.id,
   };
 
+  if (regionMetaByStat.has(region.stat)) {
+    throw new Error(`Duplicate region stat found in OUTER_REGIONS: ${region.stat}`);
+  }
   regionMetaByStat.set(region.stat, meta);
 
   for (const cell of region.cells) {
-    regionByCellKey.set(fetchCellKey(cell), region.stat);
+    const cellKey = fetchCellKey(cell);
+    if (regionByCellKey.has(cellKey)) {
+      throw new Error(
+        `Duplicate cell mapping in OUTER_REGIONS: cell [${cell[0]}, ${cell[1]}] already mapped to region`,
+      );
+    }
+    regionByCellKey.set(cellKey, region.stat);
   }
 }
 

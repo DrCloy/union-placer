@@ -7,6 +7,14 @@ export interface NexonUnionApiError {
   error: NexonOpenApiError;
 }
 
+/**
+ * Shared coordinate type used for both control points and positions
+ */
+export interface NexonCoordinate {
+  x: number;
+  y: number;
+}
+
 export interface NexonCharacterInfo {
   ocid: string;
   character_name: string;
@@ -42,15 +50,15 @@ export interface NexonUnionInnerStat {
   stat_field_effect: string;
 }
 
-export interface NexonBlockControlPoint {
-  x: number;
-  y: number;
-}
+/**
+ * Control point coordinate for a union block
+ */
+export type NexonBlockControlPoint = NexonCoordinate;
 
-export interface NexonBlockPosition {
-  x: number;
-  y: number;
-}
+/**
+ * Position coordinate(s) for a union block
+ */
+export type NexonBlockPosition = NexonCoordinate;
 
 export interface NexonUnionBlock {
   block_type: string;

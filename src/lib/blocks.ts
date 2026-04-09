@@ -4,7 +4,7 @@ import {
   JOB_GROUP_BY_JOB_NAME,
   JOB_GROUP_EFFECTIVE_STATS,
 } from "@/constants/jobs";
-import type { Grade, JobGroup } from "@/types/block";
+import type { BlockShape, Grade, JobGroup } from "@/types/block";
 import type { BlockCount, BlockSummary, Character } from "@/types/character";
 import type { InnerStat } from "@/types/placement";
 
@@ -46,18 +46,24 @@ export function fetchEffectiveStatsFromJobName(jobName: string): readonly InnerS
   return JOB_GROUP_EFFECTIVE_STATS[jobGroup];
 }
 
-export function fetchBlockShapeFromJobGroupAndGrade(jobGroup: JobGroup, grade: Grade) {
+export function fetchBlockShapeFromJobGroupAndGrade(
+  jobGroup: JobGroup,
+  grade: Grade,
+): BlockShape | undefined {
   const blockShapeId = BLOCK_SHAPE_ID_BY_JOB_GROUP_AND_GRADE[jobGroup][grade];
   return BLOCK_SHAPE_BY_ID[blockShapeId];
 }
 
-export function fetchBlockShapeFromJobGroupAndLevel(jobGroup: JobGroup, level: number) {
+export function fetchBlockShapeFromJobGroupAndLevel(
+  jobGroup: JobGroup,
+  level: number,
+): BlockShape | null {
   const grade = fetchGradeFromLevel(level);
   if (grade === null) {
     return null;
   }
 
-  return fetchBlockShapeFromJobGroupAndGrade(jobGroup, grade);
+  return fetchBlockShapeFromJobGroupAndGrade(jobGroup, grade) ?? null;
 }
 
 export function fetchBlockSummaryFromCharacters(characters: readonly Character[]): BlockSummary {
@@ -112,6 +118,9 @@ export function fetchBlockSummaryFromManualBlocks(
     totalBlocks += count;
     totalCells += shape.cells.length * count;
   }
+
+  // Sort by shapeId to match fetchBlockSummaryFromCharacters behavior
+  normalizedBlocks.sort((a, b) => a.shapeId.localeCompare(b.shapeId));
 
   return {
     blocks: normalizedBlocks,
