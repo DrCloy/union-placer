@@ -3,12 +3,12 @@ language: "ko-KR"
 
 reviews:
   profile: "assertive"
-  request_changes_workflow: true   # 지적사항이 있으면 CHANGES_REQUESTED 상태로 제출
+  request_changes_workflow: true # 지적사항이 있으면 CHANGES_REQUESTED 상태로 제출
 
   # 불필요한 부가 기능 비활성화
-  high_level_summary: false        # PR description 자동 수정 금지
-  poem: false                      # 시(poem) 생성 금지
-  collapse_walkthrough: true       # walkthrough는 접힌 상태로
+  high_level_summary: false # PR description 자동 수정 금지
+  poem: false # 시(poem) 생성 금지
+  collapse_walkthrough: true # walkthrough는 접힌 상태로
 
   auto_review:
     enabled: true
@@ -135,11 +135,11 @@ reviews:
         - OCID 조회 → 유니온 조회 → 레이더 조회 순서가 맞는가
         - API Key 우선순위: 사용자 제공 key > 서비스 환경변수 key
 
-finishing_touches:
-  docstrings:
-    enabled: false
-  unit_tests:
-    enabled: false
+  finishing_touches:
+    docstrings:
+      enabled: false
+    unit_tests:
+      enabled: false
 
 chat:
   auto_reply: true
