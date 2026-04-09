@@ -219,10 +219,10 @@ describe("calculateRegionStats", () => {
 describe("countCellsInRegion", () => {
   it("counts occupied cells in a specific region", () => {
     const stat = getRegionAt(9, 10);
-    if (stat === null) return;
+    expect(stat).not.toBeNull();
     const occupied = new Set(["9,10", "9,11"]);
     // Both (9,10) and (9,11) might belong to different regions
-    const count = countCellsInRegion(occupied, stat);
+    const count = countCellsInRegion(occupied, stat!);
     expect(count).toBeGreaterThanOrEqual(1);
   });
 });
