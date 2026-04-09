@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { BlockVariant } from "@/types/block";
-import type { OuterStat, RegionCellSetting } from "@/types/placement";
+import type { InnerStat, OuterStat, RegionCellSetting } from "@/types/placement";
 import {
   canPlace,
   calculateRegionStats,
@@ -208,7 +208,7 @@ describe("calculateRegionStats", () => {
     expect(matkStat).not.toBeNull();
 
     const settings: RegionCellSetting[] = [
-      { region: matkStat!, targetCells: 15, maxCells: 15, isOuter: false } as RegionCellSetting,
+      { region: matkStat! as InnerStat, targetCells: 15, maxCells: 15, isOuter: false },
     ];
     const stats = calculateRegionStats(newState.occupied, settings);
     expect(stats[0].placedCells).toBe(1);
@@ -251,7 +251,7 @@ describe("createResult", () => {
     const stat = getRegionAt(9, 10);
     expect(stat).not.toBeNull();
     const settings: RegionCellSetting[] = [
-      { region: stat!, targetCells: 0, maxCells: 15, isOuter: false } as RegionCellSetting,
+      { region: stat! as InnerStat, targetCells: 0, maxCells: 15, isOuter: false },
     ];
     const state = {
       occupied,
