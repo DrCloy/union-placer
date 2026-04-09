@@ -29,17 +29,23 @@ export async function fetchUnionInfo(
   apiKey?: string,
 ): Promise<NexonUnionInfoResponse> {
   const trimmedNickname = nickname.trim();
+  const trimmedApiKey = apiKey?.trim();
 
   if (trimmedNickname.length === 0) {
     throw new Error("Nickname is required");
   }
 
   const params = new URLSearchParams({ nickname: trimmedNickname });
-  if (apiKey !== undefined && apiKey.trim().length > 0) {
-    params.append("apiKey", apiKey.trim());
+  const requestHeaders = new Headers();
+
+  // Avoid exposing credentials in query strings.
+  if (trimmedApiKey !== undefined && trimmedApiKey.length > 0) {
+    requestHeaders.set("x-api-key", trimmedApiKey);
   }
 
-  const response = await fetch(`/api/nexon/union?${params.toString()}`);
+  const response = await fetch(`/api/nexon/union?${params.toString()}`, {
+    headers: requestHeaders,
+  });
   if (!response.ok) {
     const responseBody = (await response.json().catch(() => null)) as unknown;
     throw new Error(createApiErrorMessage(response.status, responseBody));

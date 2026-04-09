@@ -95,9 +95,8 @@ export function fetchBlockSummaryFromCharacters(characters: readonly Character[]
 export function fetchBlockSummaryFromManualBlocks(
   manualBlocks: readonly BlockCount[],
 ): BlockSummary {
-  const normalizedBlocks: BlockCount[] = [];
-  let totalBlocks = 0;
-  let totalCells = 0;
+  const countByShapeId = new Map<string, number>();
+  const shapeByShapeId = new Map<string, BlockShape>();
 
   for (const manualBlock of manualBlocks) {
     const shape = BLOCK_SHAPE_BY_ID[manualBlock.shapeId as keyof typeof BLOCK_SHAPE_BY_ID];
@@ -105,22 +104,37 @@ export function fetchBlockSummaryFromManualBlocks(
       continue;
     }
 
-    const count = Math.max(0, Math.trunc(manualBlock.count));
+    const rawCount = Number(manualBlock.count);
+    const validatedCount = Number.isFinite(rawCount) ? rawCount : 0;
+    const count = Math.max(0, Math.trunc(validatedCount));
     if (count === 0) {
       continue;
     }
 
-    normalizedBlocks.push({
-      shapeId: shape.id,
-      count,
-    });
-
-    totalBlocks += count;
-    totalCells += shape.cells.length * count;
+    const currentCount = countByShapeId.get(shape.id) ?? 0;
+    countByShapeId.set(shape.id, currentCount + count);
+    shapeByShapeId.set(shape.id, shape);
   }
 
-  // Sort by shapeId to match fetchBlockSummaryFromCharacters behavior
-  normalizedBlocks.sort((a, b) => a.shapeId.localeCompare(b.shapeId));
+  const normalizedBlocks: BlockCount[] = [...countByShapeId.entries()]
+    .sort(([leftShapeId], [rightShapeId]) => leftShapeId.localeCompare(rightShapeId))
+    .map(([shapeId, count]) => ({
+      shapeId,
+      count,
+    }));
+
+  let totalBlocks = 0;
+  let totalCells = 0;
+
+  for (const normalizedBlock of normalizedBlocks) {
+    const shape = shapeByShapeId.get(normalizedBlock.shapeId);
+    if (shape === undefined) {
+      continue;
+    }
+
+    totalBlocks += normalizedBlock.count;
+    totalCells += shape.cells.length * normalizedBlock.count;
+  }
 
   return {
     blocks: normalizedBlocks,

@@ -235,8 +235,8 @@ Responses:
 
 ## 3. 구현 반영 메모
 
-- src/lib/api/types.ts: 프론트엔드가 `/api/nexon/union`에서 받는 응답과 에러의 경계 타입 정의
-- src/lib/api/nexon.ts: `fetchUnionInfo` 클라이언트 래퍼, nickname/apiKey query 구성, 응답/에러 정규화
+- src/types/nexon.ts: 프론트엔드가 `/api/nexon/union`에서 받는 응답과 에러의 경계 타입 정의
+- src/lib/api/nexon.ts: `fetchUnionInfo` 클라이언트 래퍼, nickname query + `x-api-key` header 전달, 응답/에러 정규화
 - api/nexon/\*: 실제 Nexon Open API 4개 endpoint 호출, 응답 조합, 프록시 구현은 Phase 8-1에서 담당
 
 ---
