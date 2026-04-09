@@ -28,7 +28,7 @@ export default defineConfig([
   }, // ── Import layer rules ──────────────────────────────────────────────────
   // types/ : 아무것도 import 안 함
   {
-    files: ["src/types/**/*.{ts,tsx}"],
+    files: ["src/types/**/*.{ts,tsx,js,jsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -57,7 +57,7 @@ export default defineConfig([
     },
   }, // constants/ : types/ 만
   {
-    files: ["src/constants/**/*.{ts,tsx}"],
+    files: ["src/constants/**/*.{ts,tsx,js,jsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -84,7 +84,7 @@ export default defineConfig([
     },
   }, // lib/ : types/, constants/ 만
   {
-    files: ["src/lib/**/*.{ts,tsx}"],
+    files: ["src/lib/**/*.{ts,tsx,js,jsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -109,7 +109,7 @@ export default defineConfig([
     },
   }, // workers/ : types/, constants/, lib/ 만 (store·hooks 금지)
   {
-    files: ["src/workers/**/*.{ts,tsx}"],
+    files: ["src/workers/**/*.{ts,tsx,js,jsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -132,7 +132,7 @@ export default defineConfig([
     },
   }, // store/ : types/, constants/, lib/ 만
   {
-    files: ["src/store/**/*.{ts,tsx}"],
+    files: ["src/store/**/*.{ts,tsx,js,jsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
@@ -155,7 +155,7 @@ export default defineConfig([
     },
   }, // hooks/ : types/, store/, lib/ 만
   {
-    files: ["src/hooks/**/*.{ts,tsx}"],
+    files: ["src/hooks/**/*.{ts,tsx,js,jsx}"],
     rules: {
       "no-restricted-imports": [
         "error",
