@@ -1,12 +1,12 @@
+import type { BlockShape, Grade, JobGroup } from "@/types/block";
+import type { BlockCount, BlockSummary, Character } from "@/types/character";
+import type { InnerStat } from "@/types/placement";
 import { BLOCK_SHAPE_BY_ID, BLOCK_SHAPE_ID_BY_JOB_GROUP_AND_GRADE } from "@/constants/blocks";
 import {
   EFFECTIVE_STATS_BY_JOB_NAME,
   JOB_GROUP_BY_JOB_NAME,
   JOB_GROUP_EFFECTIVE_STATS,
 } from "@/constants/jobs";
-import type { BlockShape, Grade, JobGroup } from "@/types/block";
-import type { BlockCount, BlockSummary, Character } from "@/types/character";
-import type { InnerStat } from "@/types/placement";
 
 export function fetchGradeFromLevel(level: number): Grade | null {
   if (level >= 250) {

@@ -1,4 +1,4 @@
-import type { NexonUnionInfoResponse } from "@/lib/api/types";
+import type { NexonUnionInfoResponse } from "@/types/nexon";
 
 function createApiErrorMessage(status: number, body: unknown): string {
   if (typeof body === "object" && body !== null && "error" in body) {
