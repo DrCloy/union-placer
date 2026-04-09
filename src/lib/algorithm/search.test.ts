@@ -9,8 +9,8 @@ import type {
   RegionPlacementStat,
 } from "@/types/placement";
 import { DEFAULT_PRIORITY, PRESET_CUSTOM_PRIORITY, PRESET_PRIORITY } from "@/constants/presets";
-import { findOptimalPlacement, isBetterResult, isOptimal } from "./search";
-import { isConnected } from "./placement";
+import { isConnected } from "@/lib/algorithm/placement";
+import { findOptimalPlacement, isBetterResult, isOptimal } from "@/lib/algorithm/search";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -95,6 +95,11 @@ function assertValid(
       expect(stat?.placedCells ?? 0).toBe(0);
     }
   }
+
+  // At least one placed cell must lie in the central 4 cells (domain rule: connectivity anchor)
+  const CENTER_KEYS = new Set(["9,10", "9,11", "10,10", "10,11"]);
+  const hasCenter = keys.some((key) => CENTER_KEYS.has(key));
+  expect(hasCenter).toBe(true);
 
   // regionStats.isSatisfied matches actual placedCells
   for (const rs of result.stats.regionStats) {
@@ -473,6 +478,7 @@ describe("findOptimalPlacement — advanced", () => {
     // Only exp and critDamage are allowed; the rest are forbidden
     const settings = OUTER_SETTINGS_EXP_CRIT;
     const result = findOptimalPlacement(blocks, settings, DEFAULT_PRIORITY);
+    expect(result).not.toBeNull();
     if (result === null) return;
 
     const forbiddenStats = result.stats.regionStats.filter((s) => s.isForbidden);
