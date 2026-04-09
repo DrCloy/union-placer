@@ -2,12 +2,12 @@
 
 ## 현재 상태
 
-| Phase                   | 상태                       | 다음 할 일                      |
-| ----------------------- | -------------------------- | ------------------------------- |
-| Phase 0 — 하네스 인프라 | ✅ 완료                    | —                               |
-| Phase D — 문서 보완     | ✅ 완료                    | —                               |
-| Phase UI — 디자인       | ✅ 완료                    | —                                     |
-| Phase 1~8 — 구현        | ⬜ 미시작                  | Phase UI 완료 후 시작           |
+| Phase                   | 상태      | 다음 할 일            |
+| ----------------------- | --------- | --------------------- |
+| Phase 0 — 하네스 인프라 | ✅ 완료   | —                     |
+| Phase D — 문서 보완     | ✅ 완료   | —                     |
+| Phase UI — 디자인       | ✅ 완료   | —                     |
+| Phase 1~8 — 구현        | ⬜ 미시작 | Phase UI 완료 후 시작 |
 
 **권장 진행 순서:** ~~Phase D~~ → Phase UI → Phase 1~8
 
@@ -76,6 +76,24 @@ Phase 시작
 - CodeRabbit 설정: `.coderabbit.yaml`
 - 상세 워크플로우: `.claude/rules/workflow.md`
 
+### 리뷰 완료 후 공통 정비 워크플로우 (Lint/Prettier)
+
+기능 PR의 리뷰/수정이 끝나고 충돌이 없을 때, 스타일 정비는 별도 브랜치로 분리한다.
+
+```
+기능 PR 머지 완료
+  └─ git checkout main
+      └─ git pull --ff-only origin main
+          └─ git checkout -b phase/style-lint-prettier
+              └─ lint/prettier 설정 추가·수정
+                  └─ 전체 코드 적용 (lint --fix, prettier --write)
+                      └─ npm run check
+                          └─ 스타일 정비 전용 PR 생성 및 리뷰
+```
+
+- 기능 변경과 스타일 변경을 같은 PR에 섞지 않는다.
+- 대규모 포맷 변경은 설정 커밋과 적용 커밋을 분리하는 것을 권장한다.
+
 ---
 
 ## Phase 0 — 하네스 인프라 ✅
@@ -90,7 +108,7 @@ Phase 시작
 | 0-5    | VS Code Copilot 설정 (instructions + tasks + MCP)                               | `.github/copilot-instructions.md`, `.vscode/`         | ✅   |
 | 0-6    | Stitch MCP 등록 (Claude Code 유저 레벨)                                         | `~/.claude.json`                                      | ✅   |
 | 0-7    | pre-commit hook (커밋 전 check 자동 실행)                                       | `.githooks/pre-commit`, `package.json` prepare        | ✅   |
-| 0-8    | 개발 워크플로우 규칙 (브랜치·PR·리뷰)                                          | `.claude/rules/workflow.md`, `.github/instructions/`  | ✅   |
+| 0-8    | 개발 워크플로우 규칙 (브랜치·PR·리뷰)                                           | `.claude/rules/workflow.md`, `.github/instructions/`  | ✅   |
 | 0-9    | CodeRabbit AI 코드 리뷰 설정                                                    | `.coderabbit.yaml`                                    | ✅   |
 | 0-10   | CodeRabbit 리뷰 검토·수정 워크플로우 (에이전트 직접 수행)                       | `.claude/rules/workflow.md`                           | ✅   |
 
@@ -158,7 +176,7 @@ Stitch 3단계 파이프라인. UI-1·3·5는 직접 작업, 나머지는 에이
 | `docs/05-data-model.md`     | 타입·데이터 모델                  |
 | `docs/06-algorithm.md`      | 배치 알고리즘 설계                |
 | `docs/07-architecture.md`   | 시스템 아키텍처·폴더 구조         |
-| `docs/08-task-breakdown.md` | 구현 태스크 분해 (Phase 1~8 상세)      |
+| `docs/08-task-breakdown.md` | 구현 태스크 분해 (Phase 1~8 상세) |
 | `design/tokens.md`          | 디자인 토큰 (색상·타이포·간격)    |
 | `design/plan.md`            | Stitch 파이프라인·컴포넌트 목록   |
 | `design/components.md`      | 컴포넌트 UI 스펙 (UI-4 작성 예정) |
