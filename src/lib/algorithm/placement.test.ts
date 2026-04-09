@@ -12,7 +12,7 @@ import {
   isForbiddenRegion,
   isInBounds,
   placeBlock,
-} from "./placement";
+} from "@/lib/algorithm/placement";
 
 // ---------------------------------------------------------------------------
 // isInBounds
@@ -248,9 +248,10 @@ describe("createResult", () => {
 
   it("success=true when inner region has targetCells=0 (inner regions are never forbidden)", () => {
     const occupied = new Set(["9,10"]);
-    const stat = getRegionAt(9, 10)!;
+    const stat = getRegionAt(9, 10);
+    expect(stat).not.toBeNull();
     const settings: RegionCellSetting[] = [
-      { region: stat, targetCells: 0, maxCells: 15, isOuter: false } as RegionCellSetting,
+      { region: stat!, targetCells: 0, maxCells: 15, isOuter: false } as RegionCellSetting,
     ];
     const state = {
       occupied,
