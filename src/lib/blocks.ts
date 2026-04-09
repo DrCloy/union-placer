@@ -99,8 +99,16 @@ export function fetchBlockSummaryFromManualBlocks(
   const shapeByShapeId = new Map<string, BlockShape>();
 
   for (const manualBlock of manualBlocks) {
+    const hasShapeKey = Object.prototype.hasOwnProperty.call(
+      BLOCK_SHAPE_BY_ID,
+      manualBlock.shapeId,
+    );
+    if (!hasShapeKey) {
+      continue;
+    }
+
     const shape = BLOCK_SHAPE_BY_ID[manualBlock.shapeId as keyof typeof BLOCK_SHAPE_BY_ID];
-    if (shape === undefined) {
+    if (shape === undefined || shape.id === undefined) {
       continue;
     }
 
