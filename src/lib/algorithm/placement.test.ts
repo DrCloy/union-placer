@@ -124,6 +124,7 @@ describe("placeBlock", () => {
     expect(newState.remainingBlocks).toEqual([1, 2]);
   });
 
+
   it("records the placement with correct shapeId and origin", () => {
     const state = createEmptyState(1);
     const newState = placeBlock(state, 0, "common-a", variant, [9, 10]);
@@ -238,7 +239,25 @@ describe("countCellsInRegion", () => {
 });
 
 describe("createResult", () => {
-  it("success=false when forbidden region has placed cells", () => {
+  it("success=false when forbidden outer region has placed cells", () => {
+    // Cell (1,12) is in an outer region; mark it forbidden (targetCells=0, isOuter=true)
+    const occupied = new Set(["1,12"]);
+    const stat = getRegionAt(1, 12);
+    if (stat === null) return; // guard: skip if layout changes
+    const settings: RegionCellSetting[] = [
+      { region: stat, targetCells: 0, maxCells: 40, isOuter: true } as RegionCellSetting,
+    ];
+    const state = {
+      occupied,
+      placements: [],
+      remainingBlocks: [],
+      placedCells: 1,
+    };
+    const result = createResult(state, settings);
+    expect(result.success).toBe(false);
+  });
+
+  it("success=true when inner region has targetCells=0 (inner regions are never forbidden)", () => {
     const occupied = new Set(["9,10"]);
     const stat = getRegionAt(9, 10)!;
     const settings: RegionCellSetting[] = [
@@ -249,10 +268,9 @@ describe("createResult", () => {
       placements: [],
       remainingBlocks: [],
       placedCells: 1,
-      targetPlacedCells: 0,
     };
     const result = createResult(state, settings);
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it("sets totalTargetCells correctly", () => {

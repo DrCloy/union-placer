@@ -4,11 +4,12 @@ export { generateVariants, deduplicateVariants, transformCells } from "./variant
 export {
   canPlace,
   calculateRegionStats,
+  computeEffectiveTargetCells,
   countCellsInRegion,
   countEmptyCellsInRegion,
   createEmptyState,
   createResult,
-  getAdjacentPositions,
+  getAdjacentEmptyCells,
   getRegionAt,
   isConnected,
   isInBounds,

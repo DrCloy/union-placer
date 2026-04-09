@@ -21,14 +21,17 @@ export function transformCells(
   return result;
 }
 
+/**
+ * Removes variants with identical cell sets (absolute coordinates, no translation).
+ * Normalization by origin translation is intentionally avoided: the placementOrigin
+ * determines which cells anchor to the center-cell constraint, so two variants that
+ * appear as the same translated shape can still produce different absolute placements
+ * when the origin is restricted (e.g., first block must anchor at a center cell).
+ */
 export function deduplicateVariants(variants: BlockVariant[]): BlockVariant[] {
   const seen = new Set<string>();
   return variants.filter((variant) => {
-    // Translate so min row and min col are both 0, then sort for canonical form
-    const minRow = Math.min(...variant.cells.map(([r]) => r));
-    const minCol = Math.min(...variant.cells.map(([, c]) => c));
     const key = [...variant.cells]
-      .map(([row, col]) => [row - minRow, col - minCol] as [number, number])
       .sort(([aRow, aCol], [bRow, bCol]) => aRow - bRow || aCol - bCol)
       .map(([row, col]) => `${row},${col}`)
       .join("|");

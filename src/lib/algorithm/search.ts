@@ -12,11 +12,12 @@ import { generateVariants } from "./variants";
 import {
   type AlgoState,
   canPlace,
+  computeEffectiveTargetCells,
   countCellsInRegion,
   countEmptyCellsInRegion,
   createEmptyState,
   createResult,
-  getAdjacentPositions,
+  getAdjacentEmptyCells,
   getRegionAt,
   isConnected,
   placeBlock,
@@ -89,6 +90,42 @@ function scorePlacement(
 }
 
 // ---------------------------------------------------------------------------
+// Per-variant origin candidates (fix #3)
+// ---------------------------------------------------------------------------
+
+/**
+ * For a given set of adjacent empty cells and a variant, computes all valid
+ * placement origins such that at least one variant cell lands on an adjacent cell.
+ * This ensures connectivity: any block cell can be the contact point, not just the origin.
+ */
+function getOriginCandidatesForVariant(
+  adjEmpty: [number, number][],
+  variant: BlockVariant,
+  occupied: Set<string>,
+  regionSettings: RegionCellSetting[],
+): [number, number][] {
+  const seen = new Set<string>();
+  const candidates: [number, number][] = [];
+
+  for (const [adjRow, adjCol] of adjEmpty) {
+    for (const [dRow, dCol] of variant.cells) {
+      // If we place origin at (adjRow - dRow, adjCol - dCol),
+      // then variant cell [dRow, dCol] lands on [adjRow, adjCol]
+      const originRow = adjRow - dRow;
+      const originCol = adjCol - dCol;
+      const key = `${originRow},${originCol}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      if (canPlace(occupied, variant, [originRow, originCol], regionSettings)) {
+        candidates.push([originRow, originCol]);
+      }
+    }
+  }
+
+  return candidates;
+}
+
+// ---------------------------------------------------------------------------
 // Best placement finder (3-6)
 // ---------------------------------------------------------------------------
 
@@ -153,22 +190,33 @@ function buildGreedySolution(
     blocks[firstCandidate.blockIdx].id,
     firstCandidate.variant,
     firstCandidate.position,
-    regionSettings,
   );
 
-  // Remaining blocks: greedy best at each step
+  // Remaining blocks: greedy best at each step using per-variant origin candidates
   while (state.remainingBlocks.length > 0) {
-    const positions = getAdjacentPositions(state.occupied, regionSettings);
-    const candidate = findBestPlacement(state, allVariants, positions, regionSettings, customPriority);
-    if (candidate === null) break;
+    const adjEmpty = getAdjacentEmptyCells(state.occupied);
+    let bestCandidate: PlacementCandidate | null = null;
+
+    for (const blockIdx of state.remainingBlocks) {
+      for (const variant of allVariants[blockIdx]) {
+        const origins = getOriginCandidatesForVariant(adjEmpty, variant, state.occupied, regionSettings);
+        for (const position of origins) {
+          const score = scorePlacement(variant, position, regionSettings, customPriority);
+          if (bestCandidate === null || score > bestCandidate.score) {
+            bestCandidate = { blockIdx, variant, position, score };
+          }
+        }
+      }
+    }
+
+    if (bestCandidate === null) break;
 
     state = placeBlock(
       state,
-      candidate.blockIdx,
-      blocks[candidate.blockIdx].id,
-      candidate.variant,
-      candidate.position,
-      regionSettings,
+      bestCandidate.blockIdx,
+      blocks[bestCandidate.blockIdx].id,
+      bestCandidate.variant,
+      bestCandidate.position,
     );
   }
 
@@ -367,8 +415,10 @@ function searchRecursive(
 ): PlacementResult | null {
   if (callbacks.shouldAbort?.()) return currentBest;
 
+  const effectivePlaced = computeEffectiveTargetCells(state.occupied, regionSettings);
+
   // Terminal: all target-region cells are filled
-  if (state.targetPlacedCells >= totalTargetCells) {
+  if (effectivePlaced >= totalTargetCells) {
     return createResult(state, regionSettings);
   }
 
@@ -377,22 +427,31 @@ function searchRecursive(
     (sum, idx) => sum + blocks[idx].cells.length,
     0,
   );
-  if (state.targetPlacedCells + remainingBlockCells < totalTargetCells) return currentBest;
 
-  if (!canSatisfyRequired(state, blocks, regionSettings, customPriority)) return currentBest;
+  if (effectivePlaced + remainingBlockCells < totalTargetCells) {
+    // Compare the current partial state against best before pruning (fix #4)
+    const partial = createResult(state, regionSettings);
+    return isBetterResult(partial, currentBest, customPriority) ? partial : currentBest;
+  }
+
+  if (!canSatisfyRequired(state, blocks, regionSettings, customPriority)) {
+    const partial = createResult(state, regionSettings);
+    return isBetterResult(partial, currentBest, customPriority) ? partial : currentBest;
+  }
 
   let best = currentBest;
 
   const sortedBlocks = sortBlocksByPriority(state.remainingBlocks, blocks, allVariants);
-  const rawPositions = getAdjacentPositions(state.occupied, regionSettings);
-  const sortedPositions = sortPositionsByPriority(rawPositions, regionSettings, customPriority);
+  const adjEmpty = getAdjacentEmptyCells(state.occupied);
+  const sortedAdj = sortPositionsByPriority(adjEmpty, regionSettings, customPriority);
 
   for (const blockIdx of sortedBlocks) {
-    for (const position of sortedPositions) {
-      for (const variant of allVariants[blockIdx]) {
-        if (!canPlace(state.occupied, variant, position, regionSettings)) continue;
+    for (const variant of allVariants[blockIdx]) {
+      // Fix #3: derive valid origins from adjacent empty cells × variant offsets
+      const origins = getOriginCandidatesForVariant(sortedAdj, variant, state.occupied, regionSettings);
 
-        const newState = placeBlock(state, blockIdx, blocks[blockIdx].id, variant, position, regionSettings);
+      for (const position of origins) {
+        const newState = placeBlock(state, blockIdx, blocks[blockIdx].id, variant, position);
 
         if (!isConnected(newState.occupied)) continue;
 
@@ -456,7 +515,6 @@ export function findOptimalPlacement(
           blocks[blockIdx].id,
           variant,
           centerPos,
-          regionSettings,
         );
 
         const result = searchRecursive(

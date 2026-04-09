@@ -46,7 +46,7 @@ describe("generateVariants", () => {
     expect(generateVariants(shape)).toHaveLength(1);
   });
 
-  it("common-a (2 cells in line) has exactly 2 unique variants (0° and 90°)", () => {
+  it("common-a (2 cells in line) has exactly 4 unique variants", () => {
     const shape: BlockShape = {
       id: "common-a",
       grade: "A",
@@ -55,8 +55,10 @@ describe("generateVariants", () => {
         [1, 0],
       ],
     };
-    // A 2-cell line has 2 unique orientations: horizontal and vertical
-    expect(generateVariants(shape)).toHaveLength(2);
+    // With absolute-coordinate deduplication (no normalization), all 4 rotations
+    // produce distinct cell sets: [0,0]+[1,0], [0,0]+[0,1], [0,0]+[-1,0], [0,0]+[0,-1].
+    // Each anchors the block differently when the origin is fixed to a center cell.
+    expect(generateVariants(shape)).toHaveLength(4);
   });
 
   it("never returns more than 8 variants", () => {

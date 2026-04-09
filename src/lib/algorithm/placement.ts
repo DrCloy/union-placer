@@ -10,15 +10,12 @@ import { INNER_REGIONS, OUTER_REGIONS } from "@/constants/board";
 /**
  * Lightweight immutable-style placement state used exclusively inside the algorithm.
  * `occupied` is a Set of "row,col" keys representing placed cells.
- * `targetPlacedCells` counts only cells placed in regions with targetCells > 0,
- * excluding connectivity cells in unspecified inner regions.
  */
 export interface AlgoState {
   occupied: Set<string>;
   placements: BlockPlacement[];
   remainingBlocks: number[]; // indices into the blocks array passed to search
   placedCells: number;
-  targetPlacedCells: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -137,35 +134,19 @@ export function canPlace(
   });
 }
 
-/**
- * Places a block on the board and returns a new state.
- * Pass `regionSettings` so that `targetPlacedCells` is tracked correctly.
- * Omit `regionSettings` (or pass `[]`) only in tests that don't need accurate tracking.
- */
 export function placeBlock(
   state: AlgoState,
   blockIdx: number,
   shapeId: string,
   variant: BlockVariant,
   position: [number, number],
-  regionSettings: RegionCellSetting[] = [],
 ): AlgoState {
   const [pRow, pCol] = position;
   const cells: [number, number][] = variant.cells.map(([dRow, dCol]) => [pRow + dRow, pCol + dCol]);
 
   const newOccupied = new Set(state.occupied);
-  let targetCellsAdded = 0;
-
   for (const [row, col] of cells) {
-    const key = `${row},${col}`;
-    newOccupied.add(key);
-    const info = CELL_REGION_INFO.get(key);
-    if (info !== undefined) {
-      const setting = regionSettings.find((s) => s.region === info.stat);
-      if (setting !== undefined && setting.targetCells > 0) {
-        targetCellsAdded += 1;
-      }
-    }
+    newOccupied.add(`${row},${col}`);
   }
 
   const placement: BlockPlacement = {
@@ -182,7 +163,6 @@ export function placeBlock(
     placements: [...state.placements, placement],
     remainingBlocks: state.remainingBlocks.filter((idx) => idx !== blockIdx),
     placedCells: state.placedCells + cells.length,
-    targetPlacedCells: state.targetPlacedCells + targetCellsAdded,
   };
 }
 
@@ -237,8 +217,54 @@ export function calculateRegionStats(
       targetCells: setting.targetCells,
       placedCells,
       isSatisfied: placedCells >= setting.targetCells,
-      isForbidden: setting.targetCells === 0,
+      isForbidden: setting.targetCells === 0 && setting.isOuter,
     };
+  });
+}
+
+/**
+ * Computes the effective target cells filled: for each region, counts
+ * min(placedCells, targetCells) to avoid over-counting when a region is over-filled.
+ */
+export function computeEffectiveTargetCells(
+  occupied: Set<string>,
+  regionSettings: RegionCellSetting[],
+): number {
+  let total = 0;
+  for (const setting of regionSettings) {
+    if (setting.targetCells === 0) continue;
+    const placed = countCellsInRegion(occupied, setting.region);
+    total += Math.min(placed, setting.targetCells);
+  }
+  return total;
+}
+
+/**
+ * Returns all empty, in-bounds, non-forbidden cells adjacent to any occupied cell.
+ * Unlike `getAdjacentPositions`, this does not filter by forbidden status so it can
+ * be used as raw contact candidates for per-variant origin calculation.
+ */
+export function getAdjacentEmptyCells(occupied: Set<string>): [number, number][] {
+  const candidates = new Set<string>();
+
+  for (const key of occupied) {
+    const parts = key.split(",");
+    const row = Number(parts[0]);
+    const col = Number(parts[1]);
+
+    for (const [dRow, dCol] of [[0, 1], [0, -1], [1, 0], [-1, 0]] as const) {
+      const nRow = row + dRow;
+      const nCol = col + dCol;
+      const neighborKey = `${nRow},${nCol}`;
+      if (isInBounds(nRow, nCol) && !occupied.has(neighborKey)) {
+        candidates.add(neighborKey);
+      }
+    }
+  }
+
+  return Array.from(candidates).map((key) => {
+    const parts = key.split(",");
+    return [Number(parts[0]), Number(parts[1])] as [number, number];
   });
 }
 
@@ -259,46 +285,6 @@ export function createResult(state: AlgoState, regionSettings: RegionCellSetting
 }
 
 // ---------------------------------------------------------------------------
-// Adjacent position helper (used by search)
-// ---------------------------------------------------------------------------
-
-export function getAdjacentPositions(
-  occupied: Set<string>,
-  regionSettings: RegionCellSetting[],
-): [number, number][] {
-  const candidates = new Set<string>();
-
-  for (const key of occupied) {
-    const parts = key.split(",");
-    const row = Number(parts[0]);
-    const col = Number(parts[1]);
-
-    for (const [dRow, dCol] of [
-      [0, 1],
-      [0, -1],
-      [1, 0],
-      [-1, 0],
-    ] as const) {
-      const nRow = row + dRow;
-      const nCol = col + dCol;
-      const neighborKey = `${nRow},${nCol}`;
-      if (
-        isInBounds(nRow, nCol) &&
-        !occupied.has(neighborKey) &&
-        !isForbiddenRegion(nRow, nCol, regionSettings)
-      ) {
-        candidates.add(neighborKey);
-      }
-    }
-  }
-
-  return Array.from(candidates).map((key) => {
-    const parts = key.split(",");
-    return [Number(parts[0]), Number(parts[1])] as [number, number];
-  });
-}
-
-// ---------------------------------------------------------------------------
 // State factory
 // ---------------------------------------------------------------------------
 
@@ -308,6 +294,5 @@ export function createEmptyState(blockCount: number): AlgoState {
     placements: [],
     remainingBlocks: Array.from({ length: blockCount }, (_, idx) => idx),
     placedCells: 0,
-    targetPlacedCells: 0,
   };
 }
