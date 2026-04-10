@@ -168,3 +168,27 @@ CodeRabbit 리뷰 항목:
 - merge 전 충돌 재확인, 필요 시 rebase + force-with-lease push
 - 사용자 Approve 없이 merge 금지
 - 커밋 메시지: `.claude/rules/commit.md` 준수
+
+## 환경/검증 운영 기준
+
+- `npm run check`를 단일 품질 게이트로 사용한다.
+- pre-commit hook은 `npm run check`와 동일 기준을 강제한다.
+- 테스트 검증은 `npm run test`를 기준으로 수행한다.
+- CI는 `npm run check` + `npm run test`를 동일 기준으로 수행한다.
+
+## 리뷰 학습 루프
+
+PR 리뷰 반영 직후 아래 루프를 1회 실행한다.
+
+1. 리뷰 코멘트 수집
+2. 패턴 분류 (`naming`, `import layer`, `type safety`, `test quality`, `workflow`)
+3. 규칙/문서 반영 (`.github/instructions/*`, `.claude/rules/*`)
+4. 검증 (`npm run check`) 후 재발 방지 상태 갱신
+
+동일 패턴이 2회 이상 반복되면 즉시 규칙 업데이트 후보로 승격한다.
+
+## 임시 문서 운영 정책
+
+- 임시 문서는 `docs/operations/tmp/` 하위에서만 운영한다.
+- 작업 종료 후 임시 문서는 제거한다.
+- 확정된 기준/절차만 영구 문서 또는 규칙 문서로 이관한다.
