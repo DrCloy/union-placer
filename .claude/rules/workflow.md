@@ -162,10 +162,25 @@ PR 리뷰 반영 직후 아래 루프를 1회 실행한다.
 
 1. 리뷰 코멘트 수집
 2. 패턴 분류 (`naming`, `import layer`, `type safety`, `test quality`, `workflow`)
-3. 규칙/문서 반영 (`.github/instructions/*`, `.claude/rules/*`)
-4. 검증 (`npm run check`) 후 재발 방지 상태 갱신
+3. 로그 기록 (`docs/operations/review-pattern-log.md`)
+4. 규칙/문서 반영 (`.github/instructions/*`, `.claude/rules/*`)
+5. 검증 (`npm run check`) 후 재발 방지 상태 갱신
 
-동일 패턴이 2회 이상 반복되면 즉시 규칙 업데이트 후보로 승격한다.
+로그 기록 필드:
+
+- `pattern`
+- `source`
+- `summary`
+- `root cause`
+- `action`
+- `status`
+- `verification`
+
+승격 기준:
+
+- 1회 발생: 로그에 기록
+- 2회 이상 반복: 규칙 업데이트 후보로 승격
+- 규칙 반영 후: 로그의 `status`, `verification` 갱신
 
 ## 임시 문서 운영 정책
 
