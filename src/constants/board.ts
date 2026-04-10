@@ -16,6 +16,7 @@ type Coordinate = [number, number];
 
 const BOARD_WIDTH = 22 as const;
 const BOARD_HEIGHT = 20 as const;
+export { BOARD_WIDTH, BOARD_HEIGHT };
 const INNER_REGION_MAX_CELLS = 15 as const;
 const OUTER_REGION_MAX_CELLS = 40 as const;
 const DIRECTION_CAPACITY = INNER_REGION_MAX_CELLS + OUTER_REGION_MAX_CELLS;

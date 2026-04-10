@@ -56,8 +56,8 @@ interface UnionBoard {
   width: 22;
   height: 20;
   totalCells: 440;
-  innerRegions: InnerRegion[]; // 내부 8구역
-  outerRegions: OuterRegion[]; // 외부 8구역
+  innerRegions: readonly InnerRegion[]; // 내부 8구역
+  outerRegions: readonly OuterRegion[]; // 외부 8구역
 }
 ```
 
@@ -103,7 +103,7 @@ interface UnionBoard {
 interface OuterRegion {
   id: OuterRegionId;
   direction: Direction;
-  cells: [number, number][];
+  cells: readonly [number, number][];
   maxCells: 40;
   stat: OuterStat;
 }
@@ -140,7 +140,7 @@ type OuterStat =
 interface InnerRegion {
   id: InnerRegionId;
   direction: Direction;
-  cells: [number, number][];
+  cells: readonly [number, number][];
   maxCells: 15;
   stat: InnerStat; // 사용자가 변경 가능
 }

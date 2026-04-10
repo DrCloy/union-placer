@@ -72,3 +72,33 @@ describe("board mapping smoke", () => {
     }
   });
 });
+
+describe("board region invariants", () => {
+  it("has exactly 8 inner regions and 8 outer regions", () => {
+    expect(INNER_REGIONS).toHaveLength(8);
+    expect(OUTER_REGIONS).toHaveLength(8);
+  });
+
+  it("each inner region has exactly 15 cells", () => {
+    for (const region of INNER_REGIONS) {
+      expect(region.cells).toHaveLength(15);
+    }
+  });
+
+  it("each outer region has exactly 40 cells", () => {
+    for (const region of OUTER_REGIONS) {
+      expect(region.cells).toHaveLength(40);
+    }
+  });
+
+  it("all region cell coordinates are within UNION_BOARD dimensions", () => {
+    for (const region of [...INNER_REGIONS, ...OUTER_REGIONS]) {
+      for (const [row, col] of region.cells) {
+        expect(row).toBeGreaterThanOrEqual(0);
+        expect(row).toBeLessThan(UNION_BOARD.height);
+        expect(col).toBeGreaterThanOrEqual(0);
+        expect(col).toBeLessThan(UNION_BOARD.width);
+      }
+    }
+  });
+});

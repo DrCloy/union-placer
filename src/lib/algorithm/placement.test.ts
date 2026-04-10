@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { BlockVariant } from "@/types/block";
 import type { InnerStat, OuterStat, RegionCellSetting } from "@/types/placement";
 import {
+  type CellKey,
   canPlace,
   calculateRegionStats,
   countCellsInRegion,
@@ -14,6 +15,11 @@ import {
   isInBounds,
   placeBlock,
 } from "@/lib/algorithm/placement";
+
+// Helper to create strongly-typed cell key sets
+function makeCellSet(...keys: readonly string[]): Set<CellKey> {
+  return new Set(keys as CellKey[]);
+}
 
 // ---------------------------------------------------------------------------
 // isInBounds
@@ -159,7 +165,7 @@ describe("canPlace", () => {
   });
 
   it("rejects placing on an occupied cell", () => {
-    const occupied = new Set(["9,10"]);
+    const occupied = makeCellSet("9,10");
     expect(canPlace(occupied, singleCell, [9, 10], allSettings)).toBe(false);
   });
 
@@ -181,6 +187,21 @@ describe("canPlace", () => {
 
     expect(canPlace(state.occupied, twoCellsHorizontal, [0, 21], allSettings)).toBe(false);
   });
+
+  it("rejects variant that extends upward beyond top row", () => {
+    const state = createEmptyState(1);
+    const upExtend: BlockVariant = {
+      cells: [
+        [0, 0],
+        [-1, 0],
+      ],
+      rotation: 270,
+      flipped: false,
+    };
+
+    // origin row=0 is valid, but the second cell lands at row=-1
+    expect(canPlace(state.occupied, upExtend, [0, 10], allSettings)).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -192,24 +213,35 @@ describe("isConnected", () => {
   });
 
   it("single cell is connected", () => {
-    expect(isConnected(new Set(["5,5"]))).toBe(true);
+    expect(isConnected(makeCellSet("5,5"))).toBe(true);
   });
 
   it("two adjacent cells are connected", () => {
-    expect(isConnected(new Set(["5,5", "5,6"]))).toBe(true);
+    expect(isConnected(makeCellSet("5,5", "5,6"))).toBe(true);
   });
 
   it("two non-adjacent cells are not connected", () => {
-    expect(isConnected(new Set(["5,5", "7,7"]))).toBe(false);
+    expect(isConnected(makeCellSet("5,5", "7,7"))).toBe(false);
   });
 
   it("L-shape (3 cells) is connected", () => {
-    expect(isConnected(new Set(["0,0", "1,0", "1,1"]))).toBe(true);
+    expect(isConnected(makeCellSet("0,0", "1,0", "1,1"))).toBe(true);
   });
 
   it("multiple islands are not connected", () => {
-    const occupied = new Set(["0,0", "0,1", "5,5", "5,6", "10,10"]);
+    const occupied = makeCellSet("0,0", "0,1", "5,5", "5,6", "10,10");
     expect(isConnected(occupied)).toBe(false);
+  });
+
+  it("2x2 square (non-linear adjacency) is connected", () => {
+    expect(isConnected(makeCellSet("0,0", "0,1", "1,0", "1,1"))).toBe(true);
+  });
+
+  it("U-shape (5 cells) is connected", () => {
+    // ##
+    //  #
+    // ##
+    expect(isConnected(makeCellSet("0,0", "0,1", "1,1", "2,0", "2,1"))).toBe(true);
   });
 });
 
@@ -239,7 +271,7 @@ describe("countCellsInRegion", () => {
   it("counts occupied cells in a specific region", () => {
     const stat = getRegionAt(9, 10);
     expect(stat).not.toBeNull();
-    const occupied = new Set(["9,10", "9,11"]);
+    const occupied = makeCellSet("9,10", "9,11");
     // Both (9,10) and (9,11) might belong to different regions
     const count = countCellsInRegion(occupied, stat!);
     expect(count).toBeGreaterThanOrEqual(1);
@@ -249,7 +281,7 @@ describe("countCellsInRegion", () => {
 describe("createResult", () => {
   it("success=false when forbidden outer region has placed cells", () => {
     // Cell (1,12) is in an outer region; mark it forbidden (targetCells=0, isOuter=true)
-    const occupied = new Set(["1,12"]);
+    const occupied = makeCellSet("1,12");
     const stat = getRegionAt(1, 12);
     expect(stat).not.toBeNull();
     const settings: RegionCellSetting[] = [
@@ -266,7 +298,7 @@ describe("createResult", () => {
   });
 
   it("success=true when inner region has targetCells=0 (inner regions are never forbidden)", () => {
-    const occupied = new Set(["9,10"]);
+    const occupied = makeCellSet("9,10");
     const stat = getRegionAt(9, 10);
     expect(stat).not.toBeNull();
     const settings: RegionCellSetting[] = [
@@ -296,7 +328,7 @@ describe("createResult", () => {
     const forbiddenStat = getRegionAt(1, 12);
     expect(forbiddenStat).not.toBeNull();
 
-    const occupied = new Set(["1,12", "9,10"]);
+    const occupied = makeCellSet("1,12", "9,10");
     const settings: RegionCellSetting[] = [
       { region: forbiddenStat as OuterStat, targetCells: 0, maxCells: 40, isOuter: true },
       { region: "matk", targetCells: 1, maxCells: 15, isOuter: false },
@@ -315,7 +347,7 @@ describe("createResult", () => {
 
 describe("getAdjacentEmptyCells", () => {
   it("returns unique adjacent cells without duplicates", () => {
-    const occupied = new Set(["10,10", "10,11"]);
+    const occupied = makeCellSet("10,10", "10,11");
     const result = getAdjacentEmptyCells(occupied);
     const keys = result.map(([row, col]) => `${row},${col}`);
 
@@ -329,10 +361,34 @@ describe("getAdjacentEmptyCells", () => {
   });
 
   it("keeps only in-bounds adjacent cells at board corner", () => {
-    const occupied = new Set(["0,0"]);
+    const occupied = makeCellSet("0,0");
     const result = getAdjacentEmptyCells(occupied);
     const keys = result.map(([row, col]) => `${row},${col}`).sort();
 
     expect(keys).toEqual(["0,1", "1,0"]);
+  });
+
+  it("top-right corner (0,21) yields exactly 2 adjacent cells", () => {
+    const occupied = makeCellSet("0,21");
+    const result = getAdjacentEmptyCells(occupied);
+    const keys = result.map(([row, col]) => `${row},${col}`).sort();
+
+    expect(keys).toEqual(["0,20", "1,21"]);
+  });
+
+  it("bottom-left corner (19,0) yields exactly 2 adjacent cells", () => {
+    const occupied = makeCellSet("19,0");
+    const result = getAdjacentEmptyCells(occupied);
+    const keys = result.map(([row, col]) => `${row},${col}`).sort();
+
+    expect(keys).toEqual(["18,0", "19,1"]);
+  });
+
+  it("bottom-right corner (19,21) yields exactly 2 adjacent cells", () => {
+    const occupied = makeCellSet("19,21");
+    const result = getAdjacentEmptyCells(occupied);
+    const keys = result.map(([row, col]) => `${row},${col}`).sort();
+
+    expect(keys).toEqual(["18,21", "19,20"]);
   });
 });

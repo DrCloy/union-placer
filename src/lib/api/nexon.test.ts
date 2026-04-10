@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { NexonUnionInfoResponse } from "@/types/nexon";
-import { fetchUnionInfo } from "@/lib/api/nexon";
+import { fetchUnionInfo, NexonApiError } from "@/lib/api/nexon";
 
 const SUCCESS_RESPONSE = {
   union: {
@@ -82,6 +82,7 @@ describe("fetchUnionInfo", () => {
   });
 
   it("throws when nickname is empty after trim", async () => {
+    await expect(fetchUnionInfo("   ")).rejects.toThrow(NexonApiError);
     await expect(fetchUnionInfo("   ")).rejects.toThrow("Nickname is required");
     expect(fetch).not.toHaveBeenCalled();
   });
@@ -138,7 +139,11 @@ describe("fetchUnionInfo", () => {
       }),
     } as unknown as Response);
 
-    await expect(fetchUnionInfo("maple")).rejects.toThrow("OPENAPI0001: invalid request");
+    const error = await fetchUnionInfo("maple").catch((e: unknown) => e);
+    expect(error).toBeInstanceOf(NexonApiError);
+    expect((error as NexonApiError).status).toBe(400);
+    expect((error as NexonApiError).code).toBe("OPENAPI0001");
+    expect((error as NexonApiError).message).toBe("OPENAPI0001: invalid request");
   });
 
   it("returns API string error message on non-ok response", async () => {
