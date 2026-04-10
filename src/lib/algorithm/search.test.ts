@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { BlockShape } from "@/types/block";
 import type {
+  CustomPriority,
   InnerStat,
   OuterStat,
   PlacementResult,
@@ -22,6 +23,14 @@ function outerSetting(region: OuterStat, targetCells: number): RegionCellSetting
 
 function innerSetting(region: InnerStat, targetCells: number): RegionCellSetting {
   return { region, targetCells, maxCells: 15, isOuter: false };
+}
+
+function resolveCustomPriority(priority: Priority): CustomPriority {
+  if (priority.type === "preset") {
+    return PRESET_CUSTOM_PRIORITY[priority.preset];
+  }
+
+  return priority.custom;
 }
 
 /** All outer regions — only exp and critDamage have targets, rest forbidden. */
@@ -756,9 +765,10 @@ describe("findOptimalPlacement — advanced", () => {
     expect(result!.success).toBe(latest.success);
     expect(result!.stats.totalPlacedCells).toBe(latest.stats.totalPlacedCells);
     expect(result!.stats.totalTargetCells).toBe(latest.stats.totalTargetCells);
+    const defaultCustomPriority = resolveCustomPriority(DEFAULT_PRIORITY);
     // Abort 시점에 반환된 결과가 callback으로 관측된 최신 best보다 열등하지 않아야 한다.
-    expect(isBetterResult(result!, latest, PRESET_CUSTOM_PRIORITY.hunting)).toBe(false);
-    expect(isBetterResult(latest, result!, PRESET_CUSTOM_PRIORITY.hunting)).toBe(false);
+    expect(isBetterResult(result!, latest, defaultCustomPriority)).toBe(false);
+    expect(isBetterResult(latest, result!, defaultCustomPriority)).toBe(false);
   });
 
   it("keeps equivalent quality across repeated runs with identical inputs", () => {
@@ -829,8 +839,9 @@ describe("findOptimalPlacement — advanced", () => {
 
     if (emitted.length > 0) {
       const bestEmitted = emitted[emitted.length - 1];
-      expect(isBetterResult(result, bestEmitted, PRESET_CUSTOM_PRIORITY.hunting)).toBe(false);
-      expect(isBetterResult(bestEmitted, result, PRESET_CUSTOM_PRIORITY.hunting)).toBe(false);
+      const defaultCustomPriority = resolveCustomPriority(DEFAULT_PRIORITY);
+      expect(isBetterResult(result, bestEmitted, defaultCustomPriority)).toBe(false);
+      expect(isBetterResult(bestEmitted, result, defaultCustomPriority)).toBe(false);
     }
   });
 

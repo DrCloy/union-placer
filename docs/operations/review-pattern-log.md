@@ -23,3 +23,13 @@
 - status: logged | promoted | fixed
 - verification:
 ```
+
+## 2026-04-10 PR #8
+
+- pattern: test quality
+- source: CodeRabbit
+- summary: 테스트가 `DEFAULT_PRIORITY` 실행 결과를 `PRESET_CUSTOM_PRIORITY.hunting` 기준으로 비교하고, API 테스트가 URL 인코딩/헤더 표현 형식에 과결합되어 있었음
+- root cause: 실행 인자(`Priority`)와 비교 인자(`CustomPriority`)의 경계가 테스트에서 일관되게 정규화되지 않았고, 요청 검증을 문자열 매칭 중심으로 작성함
+- action: `resolveCustomPriority` 헬퍼로 비교 기준을 실행 기준에서 파생하고, URL은 `URL`/`searchParams` 파싱으로 검증하며 헤더는 `HeadersInit` 정규화 검증으로 변경
+- status: fixed
+- verification: `npm run test` 통과 (107 passed), `npm run check` 실행 완료 (에러 없음, coverage 산출물 관련 lint warning 3건)

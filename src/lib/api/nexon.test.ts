@@ -51,6 +51,26 @@ const SUCCESS_RESPONSE = {
   },
 } as NexonUnionInfoResponse;
 
+function fetchHeaderValue(headers: HeadersInit | undefined, key: string): string | null {
+  if (headers === undefined) {
+    return null;
+  }
+
+  if (headers instanceof Headers) {
+    return headers.get(key);
+  }
+
+  if (Array.isArray(headers)) {
+    const loweredKey = key.toLowerCase();
+    const matched = headers.find(([name]) => name.toLowerCase() === loweredKey);
+    return matched?.[1] ?? null;
+  }
+
+  const loweredKey = key.toLowerCase();
+  const matched = Object.entries(headers).find(([name]) => name.toLowerCase() === loweredKey);
+  return matched?.[1] ?? null;
+}
+
 describe("fetchUnionInfo", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
@@ -78,11 +98,12 @@ describe("fetchUnionInfo", () => {
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
-    expect(url).toContain("/api/nexon/union?");
-    expect(url).toContain("nickname=Maple+Hero");
 
-    const headers = options.headers as Headers;
-    expect(headers.get("x-api-key")).toBe("test-key");
+    const requestUrl = new URL(url, "https://example.test");
+    expect(requestUrl.pathname).toBe("/api/nexon/union");
+    expect(requestUrl.searchParams.get("nickname")).toBe("Maple Hero");
+
+    expect(fetchHeaderValue(options.headers, "x-api-key")).toBe("test-key");
   });
 
   it("returns API object error message on non-ok response", async () => {
