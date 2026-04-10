@@ -63,6 +63,9 @@ for (const region of INNER_REGIONS) {
     setCellRegionInfo(key, region.stat, false);
     cellSet.add(key);
   }
+  if (REGION_CELLS.has(region.stat)) {
+    throw new Error(`Duplicate RegionStat mapping in INNER region ${region.stat}`);
+  }
   REGION_CELLS.set(region.stat, cellSet);
 }
 
@@ -72,6 +75,9 @@ for (const region of OUTER_REGIONS) {
     const key = toCellKey(row, col);
     setCellRegionInfo(key, region.stat, true);
     cellSet.add(key);
+  }
+  if (REGION_CELLS.has(region.stat)) {
+    throw new Error(`Duplicate RegionStat mapping in OUTER region ${region.stat}`);
   }
   REGION_CELLS.set(region.stat, cellSet);
 }

@@ -139,7 +139,7 @@ describe("fetchUnionInfo", () => {
       }),
     } as unknown as Response);
 
-    const error = await fetchUnionInfo("maple").catch((e: unknown) => e);
+    const error = await fetchUnionInfo("maple").catch((caughtError: unknown) => caughtError);
     expect(error).toBeInstanceOf(NexonApiError);
     expect((error as NexonApiError).status).toBe(400);
     expect((error as NexonApiError).code).toBe("OPENAPI0001");

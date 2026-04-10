@@ -109,9 +109,12 @@ function assertValid(
     }
   }
 
-  // At least one placed cell must lie in the central 4 cells (domain rule: connectivity anchor)
+  // At least one block placement origin must lie in the central 4 cells (domain rule).
   const CENTER_KEYS: Set<CellKey> = makeCellSet("9,10", "9,11", "10,10", "10,11");
-  const hasCenter = keys.some((key) => CENTER_KEYS.has(key as CellKey));
+  const hasCenter = result.placements.some((placement) => {
+    const originKey = `${placement.placementOrigin[0]},${placement.placementOrigin[1]}` as CellKey;
+    return CENTER_KEYS.has(originKey);
+  });
   expect(hasCenter).toBe(true);
 
   // regionStats.isSatisfied matches actual placedCells
