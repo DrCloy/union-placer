@@ -7,14 +7,17 @@ applyTo: "**"
 ## 브랜치 전략
 
 - `main`: 항상 배포 가능한 상태 — 직접 커밋 금지
-- 기능 브랜치: `phase/N-description` (예: `phase/1-types`, `phase/2-constants`, `phase/ui-stitch`)
-- Phase 시작 시 반드시 브랜치 생성 후 작업
+- 기능 구현 브랜치: `phase/N-description` (예: `phase/1-types`, `phase/2-constants`, `phase/ui-stitch`)
+- 운영 브랜치: `ops/short-description` (예: `ops/preflight-docs-settings`, `ops/pr-template`)
+- 긴급 수정 브랜치: `hotfix/short-description` (예: `hotfix/api-timeout`)
+- `docs/*`, `chore/*` 성격 작업은 별도 prefix를 만들지 않고 `ops/*`로 통합
+- 작업 시작 시 목적에 맞는 브랜치를 생성 후 진행
 
 ## Phase 완료 → PR 흐름
 
-1. 브랜치 생성: `git checkout -b phase/N-description`
+1. 브랜치 생성: 작업 성격에 맞는 브랜치 생성 (`phase/*`, `ops/*`, `hotfix/*`)
 2. 작업 + 커밋 (pre-commit hook이 `npm run check` 자동 실행)
-3. Phase 완료 시 `gh pr create`로 PR 생성
+3. 작업 완료 시 `gh pr create`로 PR 생성
 4. CodeRabbit AI 자동 리뷰 (PR 생성 직후 자동)
 5. CodeRabbit 지적사항 수정 후 재커밋
 6. 사용자 최종 Approve
@@ -52,7 +55,7 @@ applyTo: "**"
 
 ## 에이전트 규칙
 
-- Phase 시작 전 브랜치 생성
-- Phase 완료 시 PR 생성 후 사용자에게 리뷰 요청
+- 작업 시작 전 목적에 맞는 브랜치 생성
+- 작업 완료 시 PR 생성 후 사용자에게 리뷰 요청
 - CodeRabbit 지적사항은 에이전트가 수정 후 재커밋
 - 사용자 승인(Approve) 없이 main merge 금지

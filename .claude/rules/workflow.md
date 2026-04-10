@@ -7,14 +7,17 @@ paths: []
 ## 브랜치 전략
 
 - `main`: 항상 배포 가능한 상태 — 직접 커밋 금지
-- 기능 브랜치: `phase/N-description` (예: `phase/1-types`, `phase/2-constants`, `phase/ui-stitch`)
-- Phase 시작 시 반드시 브랜치 생성 후 작업
+- 기능 구현 브랜치: `phase/N-description` (예: `phase/1-types`, `phase/2-constants`, `phase/ui-stitch`)
+- 운영 브랜치: `ops/short-description` (예: `ops/preflight-docs-settings`, `ops/pr-template`)
+- 긴급 수정 브랜치: `hotfix/short-description` (예: `hotfix/api-timeout`)
+- `docs/*`, `chore/*` 성격 작업은 `ops/*`로 통합
+- 작업 시작 시 목적에 맞는 브랜치를 생성 후 진행
 
 ## Phase 완료 → PR 흐름
 
 ### 1단계: PR 생성 전 사전 확인
 
-Phase 작업 완료 후 PR 생성 전에 반드시 아래를 확인한다.
+작업 완료 후 PR 생성 전에 반드시 아래를 확인한다.
 
 ```bash
 # 열린 PR 목록 확인
@@ -157,7 +160,7 @@ CodeRabbit 리뷰 항목:
 
 ## 에이전트 규칙 요약
 
-- Phase 시작 전 브랜치 생성
+- 작업 시작 전 목적에 맞는 브랜치 생성
 - PR 생성 전 열린 PR 목록 + 충돌 가능성 확인
 - 충돌 가능성이 있으면 rebase로 로컬 해결 후 PR 생성
 - PR 생성 후 사용자에게 PR URL 보고
