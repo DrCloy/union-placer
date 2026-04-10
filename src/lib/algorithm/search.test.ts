@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { BlockShape } from "@/types/block";
 import type {
+  CustomPriority,
   InnerStat,
   OuterStat,
   PlacementResult,
@@ -22,6 +23,14 @@ function outerSetting(region: OuterStat, targetCells: number): RegionCellSetting
 
 function innerSetting(region: InnerStat, targetCells: number): RegionCellSetting {
   return { region, targetCells, maxCells: 15, isOuter: false };
+}
+
+function resolveCustomPriority(priority: Priority): CustomPriority {
+  if (priority.type === "preset") {
+    return PRESET_CUSTOM_PRIORITY[priority.preset];
+  }
+
+  return priority.custom;
 }
 
 /** All outer regions — only exp and critDamage have targets, rest forbidden. */
@@ -473,6 +482,70 @@ describe("isBetterResult", () => {
     ]);
     expect(isBetterResult(result, result, hunting)).toBe(false);
   });
+
+  it("required tie: earlier priority group rate wins over later group gains", () => {
+    const customPriority: Priority = {
+      type: "custom",
+      custom: {
+        required: [{ region: "exp", targetCells: 40, maxCells: 40, isOuter: true }],
+        priorities: [
+          [{ region: "critDamage", targetCells: 40, maxCells: 40, isOuter: true }],
+          [{ region: "normalDamage", targetCells: 40, maxCells: 40, isOuter: true }],
+        ],
+      },
+    };
+
+    const firstGroupBetter: PlacementResult = makeResult([
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 40,
+        isSatisfied: true,
+        isForbidden: false,
+      },
+      {
+        region: "critDamage" as OuterStat,
+        targetCells: 40,
+        placedCells: 20,
+        isSatisfied: false,
+        isForbidden: false,
+      },
+      {
+        region: "normalDamage" as OuterStat,
+        targetCells: 40,
+        placedCells: 0,
+        isSatisfied: false,
+        isForbidden: false,
+      },
+    ]);
+
+    const laterGroupBetter: PlacementResult = makeResult([
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 40,
+        isSatisfied: true,
+        isForbidden: false,
+      },
+      {
+        region: "critDamage" as OuterStat,
+        targetCells: 40,
+        placedCells: 0,
+        isSatisfied: false,
+        isForbidden: false,
+      },
+      {
+        region: "normalDamage" as OuterStat,
+        targetCells: 40,
+        placedCells: 40,
+        isSatisfied: true,
+        isForbidden: false,
+      },
+    ]);
+
+    expect(isBetterResult(firstGroupBetter, laterGroupBetter, customPriority.custom)).toBe(true);
+    expect(isBetterResult(laterGroupBetter, firstGroupBetter, customPriority.custom)).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -659,6 +732,116 @@ describe("findOptimalPlacement — advanced", () => {
 
     for (let i = 1; i < results.length; i++) {
       expect(isBetterResult(results[i], results[i - 1], hunting)).toBe(true);
+    }
+  });
+
+  it("abort timing: returns current best and preserves partial progress callback", () => {
+    let shouldAbort = false;
+    const emitted: PlacementResult[] = [];
+    const blocks: BlockShape[] = [
+      {
+        id: "a-mage",
+        grade: "A",
+        cells: [
+          [0, 0],
+          [1, 0],
+        ],
+      },
+      { id: "b-mage", grade: "B", cells: [[0, 0]] },
+    ];
+    const settings: RegionCellSetting[] = [innerSetting("matk", 3)];
+
+    const result = findOptimalPlacement(blocks, settings, DEFAULT_PRIORITY, {
+      shouldAbort: () => shouldAbort,
+      onBetterResult: (nextResult) => {
+        emitted.push(nextResult);
+        shouldAbort = true;
+      },
+    });
+
+    expect(emitted.length).toBeGreaterThan(0);
+    expect(result).not.toBeNull();
+    const latest = emitted[emitted.length - 1];
+    expect(result!.success).toBe(latest.success);
+    expect(result!.stats.totalPlacedCells).toBe(latest.stats.totalPlacedCells);
+    expect(result!.stats.totalTargetCells).toBe(latest.stats.totalTargetCells);
+    const defaultCustomPriority = resolveCustomPriority(DEFAULT_PRIORITY);
+    // Abort 시점에 반환된 결과가 callback으로 관측된 최신 best보다 열등하지 않아야 한다.
+    expect(isBetterResult(result!, latest, defaultCustomPriority)).toBe(false);
+    expect(isBetterResult(latest, result!, defaultCustomPriority)).toBe(false);
+  });
+
+  it("keeps equivalent quality across repeated runs with identical inputs", () => {
+    const blocks: BlockShape[] = [
+      {
+        id: "a-mage",
+        grade: "A",
+        cells: [
+          [0, 0],
+          [1, 0],
+        ],
+      },
+      { id: "b-mage", grade: "B", cells: [[0, 0]] },
+    ];
+    const settings: RegionCellSetting[] = [innerSetting("matk", 3)];
+
+    const first = findOptimalPlacement(blocks, settings, DEFAULT_PRIORITY);
+    const second = findOptimalPlacement(blocks, settings, DEFAULT_PRIORITY);
+    const third = findOptimalPlacement(blocks, settings, DEFAULT_PRIORITY);
+
+    expect(first).not.toBeNull();
+    expect(second).not.toBeNull();
+    expect(third).not.toBeNull();
+
+    assertValid(first, settings);
+    assertValid(second, settings);
+    assertValid(third, settings);
+
+    const firstEffective = first!.stats.regionStats.reduce(
+      (sum, stat) => sum + Math.min(stat.placedCells, stat.targetCells),
+      0,
+    );
+    const secondEffective = second!.stats.regionStats.reduce(
+      (sum, stat) => sum + Math.min(stat.placedCells, stat.targetCells),
+      0,
+    );
+    const thirdEffective = third!.stats.regionStats.reduce(
+      (sum, stat) => sum + Math.min(stat.placedCells, stat.targetCells),
+      0,
+    );
+
+    expect(second!.success).toBe(first!.success);
+    expect(third!.success).toBe(first!.success);
+    expect(second!.stats.totalPlacedCells).toBe(first!.stats.totalPlacedCells);
+    expect(third!.stats.totalPlacedCells).toBe(first!.stats.totalPlacedCells);
+    expect(secondEffective).toBe(firstEffective);
+    expect(thirdEffective).toBe(firstEffective);
+  });
+
+  it("keeps best partial result when targets are impossible (pruning boundary)", () => {
+    const emitted: PlacementResult[] = [];
+    const blocks: BlockShape[] = [
+      { id: "b1", grade: "B", cells: [[0, 0]] },
+      { id: "b2", grade: "B", cells: [[0, 0]] },
+    ];
+    const impossibleSettings: RegionCellSetting[] = [outerSetting("exp", 999)];
+
+    const result = findOptimalPlacement(blocks, impossibleSettings, DEFAULT_PRIORITY, {
+      onBetterResult: (nextResult) => emitted.push(nextResult),
+    });
+
+    expect(result).not.toBeNull();
+    if (result === null) return;
+
+    // 목표 달성은 불가능하지만, 탐색 과정에서 얻은 최선의 partial 결과가 유지되어야 한다.
+    expect(result.stats.totalPlacedCells).toBeGreaterThan(0);
+    expect(result.stats.totalPlacedCells).toBeLessThanOrEqual(2);
+
+    if (emitted.length > 0) {
+      const bestEmitted = emitted[emitted.length - 1];
+      const defaultCustomPriority = resolveCustomPriority(DEFAULT_PRIORITY);
+      expect(isBetterResult(result, bestEmitted, defaultCustomPriority)).toBe(false);
+      expect(isBetterResult(bestEmitted, result, defaultCustomPriority)).toBe(false);
     }
   });
 
