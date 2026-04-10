@@ -181,7 +181,13 @@ function buildGreedySolution(
   let state = createEmptyState(blocks.length);
 
   // First block must anchor at a center cell
-  const firstCandidate = findBestPlacement(state, allVariants, CENTER_POSITIONS, regionSettings, customPriority);
+  const firstCandidate = findBestPlacement(
+    state,
+    allVariants,
+    CENTER_POSITIONS,
+    regionSettings,
+    customPriority,
+  );
   if (firstCandidate === null) return null;
 
   state = placeBlock(
@@ -199,7 +205,12 @@ function buildGreedySolution(
 
     for (const blockIdx of state.remainingBlocks) {
       for (const variant of allVariants[blockIdx]) {
-        const origins = getOriginCandidatesForVariant(adjEmpty, variant, state.occupied, regionSettings);
+        const origins = getOriginCandidatesForVariant(
+          adjEmpty,
+          variant,
+          state.occupied,
+          regionSettings,
+        );
         for (const position of origins) {
           const score = scorePlacement(variant, position, regionSettings, customPriority);
           if (bestCandidate === null || score > bestCandidate.score) {
@@ -277,10 +288,7 @@ function countForbiddenViolations(regionStats: RegionPlacementStat[]): number {
 }
 
 function countEffectiveFilled(regionStats: RegionPlacementStat[]): number {
-  return regionStats.reduce(
-    (sum, stat) => sum + Math.min(stat.placedCells, stat.targetCells),
-    0,
-  );
+  return regionStats.reduce((sum, stat) => sum + Math.min(stat.placedCells, stat.targetCells), 0);
 }
 
 export function isOptimal(
@@ -350,11 +358,7 @@ export function isBetterResult(
 // Pruning helpers (3-7)
 // ---------------------------------------------------------------------------
 
-function maxFillableInRegion(
-  state: AlgoState,
-  blocks: BlockShape[],
-  region: RegionStat,
-): number {
+function maxFillableInRegion(state: AlgoState, blocks: BlockShape[], region: RegionStat): number {
   const emptyInRegion = countEmptyCellsInRegion(state.occupied, region);
   const remainingBlockCells = state.remainingBlocks.reduce(
     (sum, idx) => sum + blocks[idx].cells.length,
@@ -399,8 +403,10 @@ function sortPositionsByPriority(
   return [...positions].sort(([aRow, aCol], [bRow, bCol]) => {
     const aStat = getRegionAt(aRow, aCol);
     const bStat = getRegionAt(bRow, bCol);
-    const aHasTarget = aStat !== null && regionSettings.some((s) => s.region === aStat && s.targetCells > 0);
-    const bHasTarget = bStat !== null && regionSettings.some((s) => s.region === bStat && s.targetCells > 0);
+    const aHasTarget =
+      aStat !== null && regionSettings.some((s) => s.region === aStat && s.targetCells > 0);
+    const bHasTarget =
+      bStat !== null && regionSettings.some((s) => s.region === bStat && s.targetCells > 0);
     const aScore = aStat !== null && aHasTarget ? getRegionScore(aStat, customPriority) : 0;
     const bScore = bStat !== null && bHasTarget ? getRegionScore(bStat, customPriority) : 0;
     return bScore - aScore;
@@ -460,7 +466,12 @@ function searchRecursive(
   for (const blockIdx of sortedBlocks) {
     for (const variant of allVariants[blockIdx]) {
       // Fix #3: derive valid origins from adjacent empty cells × variant offsets
-      const origins = getOriginCandidatesForVariant(sortedAdj, variant, state.occupied, regionSettings);
+      const origins = getOriginCandidatesForVariant(
+        sortedAdj,
+        variant,
+        state.occupied,
+        regionSettings,
+      );
 
       for (const position of origins) {
         const newState = placeBlock(state, blockIdx, blocks[blockIdx].id, variant, position);

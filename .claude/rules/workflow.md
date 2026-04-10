@@ -7,14 +7,17 @@ paths: []
 ## 브랜치 전략
 
 - `main`: 항상 배포 가능한 상태 — 직접 커밋 금지
-- 기능 브랜치: `phase/N-description` (예: `phase/1-types`, `phase/2-constants`, `phase/ui-stitch`)
-- Phase 시작 시 반드시 브랜치 생성 후 작업
+- 기능 구현 브랜치: `phase/N-description` (예: `phase/1-types`, `phase/2-constants`, `phase/ui-stitch`)
+- 운영 브랜치: `ops/short-description` (예: `ops/preflight-docs-settings`, `ops/pr-template`)
+- 긴급 수정 브랜치: `hotfix/short-description` (예: `hotfix/api-timeout`)
+- `docs/*`, `chore/*` 성격 작업은 `ops/*`로 통합
+- 작업 시작 시 목적에 맞는 브랜치를 생성 후 진행
 
 ## Phase 완료 → PR 흐름
 
 ### 1단계: PR 생성 전 사전 확인
 
-Phase 작업 완료 후 PR 생성 전에 반드시 아래를 확인한다.
+작업 완료 후 PR 생성 전에 반드시 아래를 확인한다.
 
 ```bash
 # 열린 PR 목록 확인
@@ -26,6 +29,7 @@ git diff origin/main...HEAD --name-only
 ```
 
 **열린 PR이 있는 경우:**
+
 - 해당 PR과 현재 브랜치가 **같은 파일을 수정했는지** 확인
 - 겹치는 파일이 없으면 → PR 생성 진행
 - 겹치는 파일이 있으면 → 충돌 가능성이 있으므로 아래 절차 수행:
@@ -51,24 +55,7 @@ git diff origin/main...HEAD --name-only
 gh pr create --title "<type>: <subject>" --body "..."
 ```
 
-PR 본문 템플릿:
-
-```markdown
-## 작업 내용
-- N-1: ...
-- N-2: ...
-
-## 체크리스트
-- [ ] npm run check 통과
-- [ ] import 레이어 위반 없음
-- [ ] any 타입 없음
-- [ ] 명명 규칙 준수
-- [ ] 도메인 용어 준수
-- [ ] 컴포넌트당 하나의 파일
-
-## 참고 문서
-docs/08-task-breakdown.md — Phase N 상세
-```
+PR 본문/체크리스트는 `.github/pull_request_template.md`를 단일 소스로 사용한다.
 
 PR 생성 후 사용자에게 PR URL과 함께 CodeRabbit 리뷰 대기 중임을 알린다.
 
@@ -83,11 +70,13 @@ gh api repos/<owner>/<repo>/pulls/<PR_NUMBER>/reviews/<REVIEW_ID>/comments
 ```
 
 각 지적사항에 대해:
+
 - 프로젝트 규칙(import 레이어, 네이밍, 도메인 용어 등)에 비추어 타당성 검토
 - 타당한 지적 → 파일 직접 수정
 - 부당하거나 프로젝트 맥락에 맞지 않는 지적 → 이유와 함께 사용자에게 보고
 
 수정 후:
+
 ```bash
 npm run check
 git add <changed-files>
@@ -135,6 +124,7 @@ gh pr merge <PR_NUMBER> --squash --delete-branch
 설정: `.coderabbit.yaml`
 
 CodeRabbit 리뷰 항목:
+
 - import 레이어 위반 (각 레이어별 허용 import 명시됨)
 - `any` 타입 사용
 - 인라인 스타일, Tailwind 규칙 위반
@@ -142,6 +132,7 @@ CodeRabbit 리뷰 항목:
 - API 보안 (환경변수 노출 등)
 
 사용자 최종 확인 항목:
+
 - 도메인 용어 준수 (`.claude/rules/domain.md`)
 - 문서(docs/)와 구현 내용 일치
 
@@ -149,7 +140,7 @@ CodeRabbit 리뷰 항목:
 
 ## 에이전트 규칙 요약
 
-- Phase 시작 전 브랜치 생성
+- 작업 시작 전 목적에 맞는 브랜치 생성
 - PR 생성 전 열린 PR 목록 + 충돌 가능성 확인
 - 충돌 가능성이 있으면 rebase로 로컬 해결 후 PR 생성
 - PR 생성 후 사용자에게 PR URL 보고
@@ -157,3 +148,42 @@ CodeRabbit 리뷰 항목:
 - merge 전 충돌 재확인, 필요 시 rebase + force-with-lease push
 - 사용자 Approve 없이 merge 금지
 - 커밋 메시지: `.claude/rules/commit.md` 준수
+
+## 환경/검증 운영 기준
+
+- `npm run check`를 단일 품질 게이트로 사용한다.
+- pre-commit hook은 `npm run check`와 동일 기준을 강제한다.
+- 테스트 검증은 `npm run test`를 기준으로 수행한다.
+- CI는 `npm run check` + `npm run test`를 동일 기준으로 수행한다.
+
+## 리뷰 학습 루프
+
+PR 리뷰 반영 직후 아래 루프를 1회 실행한다.
+
+1. 리뷰 코멘트 수집
+2. 패턴 분류 (`naming`, `import layer`, `type safety`, `test quality`, `workflow`)
+3. 로그 기록 (`docs/operations/review-pattern-log.md`)
+4. 규칙/문서 반영 (`.github/instructions/*`, `.claude/rules/*`)
+5. 검증 (`npm run check`) 후 재발 방지 상태 갱신
+
+로그 기록 필드:
+
+- `pattern`
+- `source`
+- `summary`
+- `root cause`
+- `action`
+- `status`
+- `verification`
+
+승격 기준:
+
+- 1회 발생: 로그에 기록
+- 2회 이상 반복: 규칙 업데이트 후보로 승격
+- 규칙 반영 후: 로그의 `status`, `verification` 갱신
+
+## 임시 문서 운영 정책
+
+- 임시 문서는 `docs/operations/tmp/` 하위에서만 운영한다.
+- 작업 종료 후 임시 문서는 제거한다.
+- 확정된 기준/절차만 영구 문서 또는 규칙 문서로 이관한다.

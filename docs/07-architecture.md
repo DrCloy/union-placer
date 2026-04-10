@@ -26,15 +26,15 @@
 
 ### 1.2 기술 스택
 
-| 분류              | 기술             |
-| ----------------- | ---------------- |
-| **프레임워크**    | Vite + React 19 (React Compiler)  |
-| **언어**          | TypeScript       |
-| **스타일링**      | Tailwind CSS     |
-| **상태 관리**     | Zustand          |
-| **배포**          | Vercel           |
-| **Serverless**    | Vercel Functions |
-| **알고리즘 실행** | Web Worker       |
+| 분류              | 기술                             |
+| ----------------- | -------------------------------- |
+| **프레임워크**    | Vite + React 19 (React Compiler) |
+| **언어**          | TypeScript                       |
+| **스타일링**      | Tailwind CSS                     |
+| **상태 관리**     | Zustand                          |
+| **배포**          | Vercel                           |
+| **Serverless**    | Vercel Functions                 |
+| **알고리즘 실행** | Web Worker                       |
 
 ---
 
@@ -274,21 +274,30 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   try {
     // 1. 캐릭터 OCID 조회
-    const ocidRes = await fetch(`https://open.api.nexon.com/maplestory/v1/id?character_name=${nickname}`, {
-      headers: { "x-nxopen-api-key": key },
-    });
+    const ocidRes = await fetch(
+      `https://open.api.nexon.com/maplestory/v1/id?character_name=${nickname}`,
+      {
+        headers: { "x-nxopen-api-key": key },
+      },
+    );
     const { ocid } = await ocidRes.json();
 
     // 2. 유니온 정보 조회
-    const unionRes = await fetch(`https://open.api.nexon.com/maplestory/v1/user/union?ocid=${ocid}`, {
-      headers: { "x-nxopen-api-key": key },
-    });
+    const unionRes = await fetch(
+      `https://open.api.nexon.com/maplestory/v1/user/union?ocid=${ocid}`,
+      {
+        headers: { "x-nxopen-api-key": key },
+      },
+    );
     const unionData = await unionRes.json();
 
     // 3. 유니온 레이더 정보 조회 (캐릭터 목록)
-    const raiderRes = await fetch(`https://open.api.nexon.com/maplestory/v1/user/union-raider?ocid=${ocid}`, {
-      headers: { "x-nxopen-api-key": key },
-    });
+    const raiderRes = await fetch(
+      `https://open.api.nexon.com/maplestory/v1/user/union-raider?ocid=${ocid}`,
+      {
+        headers: { "x-nxopen-api-key": key },
+      },
+    );
     const raiderData = await raiderRes.json();
 
     res.status(200).json({

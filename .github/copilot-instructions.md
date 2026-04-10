@@ -33,14 +33,14 @@ ESLint가 위반 시 에러로 강제합니다. 코드 생성 후 `npm run check
 ## Development workflow
 
 - `main` 직접 커밋 금지
-- Phase 시작: `git checkout -b phase/N-description`
-- Phase 완료: `gh pr create` → CodeRabbit 자동 리뷰 → 지적사항 수정 → 사용자 Approve → Squash merge
+- 작업 시작: 성격에 맞는 브랜치(`phase/*`, `ops/*`, `hotfix/*`) 생성
+- 작업 완료: `gh pr create` → CodeRabbit 자동 리뷰 → 지적사항 수정 → 사용자 Approve → Squash merge
 - 상세: `.github/instructions/workflow.instructions.md`
 
 ## Checklist (작업 완료 전 필수)
 
-```
-□ npm run check 통과 (typecheck + lint)
+```markdown
+□ npm run check 통과 (typecheck + lint + format check)
 □ import 레이어 위반 없음
 □ any 타입 없음
 □ 명명 규칙 준수 → .github/instructions/naming.instructions.md

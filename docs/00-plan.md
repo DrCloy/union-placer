@@ -45,7 +45,7 @@ components/   ← 전부 가능
 ### 에이전트 체크리스트 (작업 완료 전 필수)
 
 ```
-□ npm run check 통과 (typecheck + lint)
+□ npm run check 통과 (typecheck + lint + format check)
 □ import 레이어 위반 없음
 □ any 타입 없음
 □ 명명 규칙 준수 → naming.instructions.md
@@ -179,6 +179,6 @@ Stitch 3단계 파이프라인. UI-1·3·5는 직접 작업, 나머지는 에이
 | `docs/08-task-breakdown.md` | 구현 태스크 분해 (Phase 1~8 상세) |
 | `design/tokens.md`          | 디자인 토큰 (색상·타이포·간격)    |
 | `design/plan.md`            | Stitch 파이프라인·컴포넌트 목록   |
-| `design/components.md`      | 컴포넌트 UI 스펙 (UI-4 작성 예정) |
-| `design/wireframes.md`      | 페이지 목업 스펙 (UI-6 작성 예정) |
+| `design/components.md`      | 컴포넌트 UI 참고 스펙             |
+| `design/wireframes.md`      | 페이지 목업 참고 스펙             |
 | `.github/instructions/`     | 코딩·네이밍·도메인·커밋 규칙      |

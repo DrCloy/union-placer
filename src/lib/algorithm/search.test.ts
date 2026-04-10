@@ -152,7 +152,14 @@ describe("findOptimalPlacement", () => {
   it("no cells land in forbidden outer regions", () => {
     const blocks: BlockShape[] = [
       { id: "common-b", grade: "B", cells: [[0, 0]] },
-      { id: "common-a", grade: "A", cells: [[0, 0], [1, 0]] },
+      {
+        id: "common-a",
+        grade: "A",
+        cells: [
+          [0, 0],
+          [1, 0],
+        ],
+      },
     ];
     const result = findOptimalPlacement(blocks, OUTER_SETTINGS_EXP_CRIT, DEFAULT_PRIORITY);
     if (result !== null) assertValid(result, OUTER_SETTINGS_EXP_CRIT);
@@ -169,7 +176,9 @@ describe("findOptimalPlacement", () => {
     let calls = 0;
     const blocks: BlockShape[] = [{ id: "common-b", grade: "B", cells: [[0, 0]] }];
     findOptimalPlacement(blocks, [innerSetting("matk", 1)], DEFAULT_PRIORITY, {
-      onBetterResult: () => { calls += 1; },
+      onBetterResult: () => {
+        calls += 1;
+      },
     });
     expect(calls).toBeGreaterThan(0);
   });
@@ -198,7 +207,13 @@ describe("isOptimal", () => {
         totalTargetCells: 40,
         totalPlacedCells: 0,
         regionStats: [
-          { region: "exp" as OuterStat, targetCells: 40, placedCells: 0, isSatisfied: false, isForbidden: false },
+          {
+            region: "exp" as OuterStat,
+            targetCells: 40,
+            placedCells: 0,
+            isSatisfied: false,
+            isForbidden: false,
+          },
         ],
       },
     };
@@ -219,9 +234,27 @@ describe("isOptimal", () => {
         totalTargetCells: 120,
         totalPlacedCells: 120,
         regionStats: [
-          { region: "exp" as OuterStat, targetCells: 40, placedCells: 40, isSatisfied: true, isForbidden: false },
-          { region: "critDamage" as OuterStat, targetCells: 40, placedCells: 40, isSatisfied: true, isForbidden: false },
-          { region: "normalDamage" as OuterStat, targetCells: 40, placedCells: 40, isSatisfied: true, isForbidden: false },
+          {
+            region: "exp" as OuterStat,
+            targetCells: 40,
+            placedCells: 40,
+            isSatisfied: true,
+            isForbidden: false,
+          },
+          {
+            region: "critDamage" as OuterStat,
+            targetCells: 40,
+            placedCells: 40,
+            isSatisfied: true,
+            isForbidden: false,
+          },
+          {
+            region: "normalDamage" as OuterStat,
+            targetCells: 40,
+            placedCells: 40,
+            isSatisfied: true,
+            isForbidden: false,
+          },
         ],
       },
     };
@@ -255,10 +288,22 @@ describe("isBetterResult", () => {
 
   it("more required satisfaction wins", () => {
     const noExp = makeResult([
-      { region: "exp" as OuterStat, targetCells: 40, placedCells: 0, isSatisfied: false, isForbidden: false },
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 0,
+        isSatisfied: false,
+        isForbidden: false,
+      },
     ]);
     const fullExp = makeResult([
-      { region: "exp" as OuterStat, targetCells: 40, placedCells: 40, isSatisfied: true, isForbidden: false },
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 40,
+        isSatisfied: true,
+        isForbidden: false,
+      },
     ]);
     expect(isBetterResult(fullExp, noExp, hunting)).toBe(true);
     expect(isBetterResult(noExp, fullExp, hunting)).toBe(false);
@@ -267,10 +312,22 @@ describe("isBetterResult", () => {
   it("equal required count: higher required rate wins", () => {
     // Both satisfy 0 required, but one has 20/40 vs 10/40
     const half = makeResult([
-      { region: "exp" as OuterStat, targetCells: 40, placedCells: 20, isSatisfied: false, isForbidden: false },
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 20,
+        isSatisfied: false,
+        isForbidden: false,
+      },
     ]);
     const quarter = makeResult([
-      { region: "exp" as OuterStat, targetCells: 40, placedCells: 10, isSatisfied: false, isForbidden: false },
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 10,
+        isSatisfied: false,
+        isForbidden: false,
+      },
     ]);
     expect(isBetterResult(half, quarter, hunting)).toBe(true);
     expect(isBetterResult(quarter, half, hunting)).toBe(false);
@@ -280,14 +337,50 @@ describe("isBetterResult", () => {
     // hunting required=exp(40), priorities=[[critDamage(40)],[normalDamage(40)]]
     // Both have exp=40 (required satisfied), so group rates decide
     const withCrit = makeResult([
-      { region: "exp" as OuterStat, targetCells: 40, placedCells: 40, isSatisfied: true, isForbidden: false },
-      { region: "critDamage" as OuterStat, targetCells: 40, placedCells: 40, isSatisfied: true, isForbidden: false },
-      { region: "normalDamage" as OuterStat, targetCells: 40, placedCells: 0, isSatisfied: false, isForbidden: false },
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 40,
+        isSatisfied: true,
+        isForbidden: false,
+      },
+      {
+        region: "critDamage" as OuterStat,
+        targetCells: 40,
+        placedCells: 40,
+        isSatisfied: true,
+        isForbidden: false,
+      },
+      {
+        region: "normalDamage" as OuterStat,
+        targetCells: 40,
+        placedCells: 0,
+        isSatisfied: false,
+        isForbidden: false,
+      },
     ]);
     const noCrit = makeResult([
-      { region: "exp" as OuterStat, targetCells: 40, placedCells: 40, isSatisfied: true, isForbidden: false },
-      { region: "critDamage" as OuterStat, targetCells: 40, placedCells: 0, isSatisfied: false, isForbidden: false },
-      { region: "normalDamage" as OuterStat, targetCells: 40, placedCells: 40, isSatisfied: true, isForbidden: false },
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 40,
+        isSatisfied: true,
+        isForbidden: false,
+      },
+      {
+        region: "critDamage" as OuterStat,
+        targetCells: 40,
+        placedCells: 0,
+        isSatisfied: false,
+        isForbidden: false,
+      },
+      {
+        region: "normalDamage" as OuterStat,
+        targetCells: 40,
+        placedCells: 40,
+        isSatisfied: true,
+        isForbidden: false,
+      },
     ]);
     expect(isBetterResult(withCrit, noCrit, hunting)).toBe(true);
     expect(isBetterResult(noCrit, withCrit, hunting)).toBe(false);
@@ -296,12 +389,36 @@ describe("isBetterResult", () => {
   it("equal required + group rates: higher effectiveFilled wins", () => {
     // Both exp=0 (required not satisfied), both groups empty — effectiveFilled differs
     const moreInner = makeResult([
-      { region: "exp" as OuterStat, targetCells: 40, placedCells: 0, isSatisfied: false, isForbidden: false },
-      { region: "str" as InnerStat, targetCells: 15, placedCells: 10, isSatisfied: false, isForbidden: false },
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 0,
+        isSatisfied: false,
+        isForbidden: false,
+      },
+      {
+        region: "str" as InnerStat,
+        targetCells: 15,
+        placedCells: 10,
+        isSatisfied: false,
+        isForbidden: false,
+      },
     ]);
     const lessInner = makeResult([
-      { region: "exp" as OuterStat, targetCells: 40, placedCells: 0, isSatisfied: false, isForbidden: false },
-      { region: "str" as InnerStat, targetCells: 15, placedCells: 3, isSatisfied: false, isForbidden: false },
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 0,
+        isSatisfied: false,
+        isForbidden: false,
+      },
+      {
+        region: "str" as InnerStat,
+        targetCells: 15,
+        placedCells: 3,
+        isSatisfied: false,
+        isForbidden: false,
+      },
     ]);
     expect(isBetterResult(moreInner, lessInner, hunting)).toBe(true);
     expect(isBetterResult(lessInner, moreInner, hunting)).toBe(false);
@@ -309,12 +426,36 @@ describe("isBetterResult", () => {
 
   it("equal up to effectiveFilled: fewer forbidden violations wins", () => {
     const noViolation = makeResult([
-      { region: "exp" as OuterStat, targetCells: 40, placedCells: 10, isSatisfied: false, isForbidden: false },
-      { region: "critRate" as OuterStat, targetCells: 0, placedCells: 0, isSatisfied: true, isForbidden: true },
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 10,
+        isSatisfied: false,
+        isForbidden: false,
+      },
+      {
+        region: "critRate" as OuterStat,
+        targetCells: 0,
+        placedCells: 0,
+        isSatisfied: true,
+        isForbidden: true,
+      },
     ]);
     const withViolation = makeResult([
-      { region: "exp" as OuterStat, targetCells: 40, placedCells: 10, isSatisfied: false, isForbidden: false },
-      { region: "critRate" as OuterStat, targetCells: 0, placedCells: 3, isSatisfied: true, isForbidden: true },
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 10,
+        isSatisfied: false,
+        isForbidden: false,
+      },
+      {
+        region: "critRate" as OuterStat,
+        targetCells: 0,
+        placedCells: 3,
+        isSatisfied: true,
+        isForbidden: true,
+      },
     ]);
     expect(isBetterResult(noViolation, withViolation, hunting)).toBe(true);
     expect(isBetterResult(withViolation, noViolation, hunting)).toBe(false);
@@ -322,7 +463,13 @@ describe("isBetterResult", () => {
 
   it("identical results: returns false", () => {
     const result = makeResult([
-      { region: "exp" as OuterStat, targetCells: 40, placedCells: 20, isSatisfied: false, isForbidden: false },
+      {
+        region: "exp" as OuterStat,
+        targetCells: 40,
+        placedCells: 20,
+        isSatisfied: false,
+        isForbidden: false,
+      },
     ]);
     expect(isBetterResult(result, result, hunting)).toBe(false);
   });
@@ -337,8 +484,23 @@ describe("findOptimalPlacement — advanced", () => {
 
   it("places S + A + B blocks (3+2+1 cells) in a connected arrangement", () => {
     const blocks: BlockShape[] = [
-      { id: "s-mage", grade: "S", cells: [[0, 0], [0, 1], [0, 2]] },
-      { id: "a-mage", grade: "A", cells: [[0, 0], [1, 0]] },
+      {
+        id: "s-mage",
+        grade: "S",
+        cells: [
+          [0, 0],
+          [0, 1],
+          [0, 2],
+        ],
+      },
+      {
+        id: "a-mage",
+        grade: "A",
+        cells: [
+          [0, 0],
+          [1, 0],
+        ],
+      },
       { id: "b-mage", grade: "B", cells: [[0, 0]] },
     ];
     const settings: RegionCellSetting[] = [innerSetting("matk", 6)];
@@ -355,7 +517,16 @@ describe("findOptimalPlacement — advanced", () => {
 
   it("SS block (4 cells) is placed connected and within bounds", () => {
     const blocks: BlockShape[] = [
-      { id: "ss-warrior", grade: "SS", cells: [[0, 0], [0, 1], [1, 0], [1, 1]] },
+      {
+        id: "ss-warrior",
+        grade: "SS",
+        cells: [
+          [0, 0],
+          [0, 1],
+          [1, 0],
+          [1, 1],
+        ],
+      },
     ];
     const settings: RegionCellSetting[] = [innerSetting("str", 4)];
     const result = findOptimalPlacement(blocks, settings, DEFAULT_PRIORITY);
@@ -392,7 +563,15 @@ describe("findOptimalPlacement — advanced", () => {
     if (result === null) return;
 
     // Forbidden regions must be empty
-    const forbidden = ["critDamage", "normalDamage", "critRate", "bossDamage", "buffDuration", "ignoreDefense", "statusResist"];
+    const forbidden: OuterStat[] = [
+      "critDamage",
+      "normalDamage",
+      "critRate",
+      "bossDamage",
+      "buffDuration",
+      "ignoreDefense",
+      "statusResist",
+    ];
     for (const region of forbidden) {
       const stat = result.stats.regionStats.find((s) => s.region === region);
       expect(stat?.placedCells ?? 0).toBe(0);
@@ -421,7 +600,15 @@ describe("findOptimalPlacement — advanced", () => {
     if (result === null) return;
 
     // All cells must avoid forbidden outer regions
-    const forbidden = ["bossDamage", "ignoreDefense", "exp", "critRate", "normalDamage", "buffDuration", "statusResist"];
+    const forbidden: OuterStat[] = [
+      "bossDamage",
+      "ignoreDefense",
+      "exp",
+      "critRate",
+      "normalDamage",
+      "buffDuration",
+      "statusResist",
+    ];
     for (const region of forbidden) {
       const stat = result.stats.regionStats.find((s) => s.region === region);
       expect(stat?.placedCells ?? 0).toBe(0);
@@ -453,7 +640,14 @@ describe("findOptimalPlacement — advanced", () => {
   it("onBetterResult: each emitted result is better than the previous", () => {
     const results: PlacementResult[] = [];
     const blocks: BlockShape[] = [
-      { id: "a-mage", grade: "A", cells: [[0, 0], [1, 0]] },
+      {
+        id: "a-mage",
+        grade: "A",
+        cells: [
+          [0, 0],
+          [1, 0],
+        ],
+      },
       { id: "b-mage", grade: "B", cells: [[0, 0]] },
     ];
     const settings: RegionCellSetting[] = [innerSetting("matk", 3)];
@@ -472,7 +666,15 @@ describe("findOptimalPlacement — advanced", () => {
 
   it("all forbidden outer regions have zero placed cells", () => {
     const blocks: BlockShape[] = [
-      { id: "s-mage", grade: "S", cells: [[0, 0], [0, 1], [0, 2]] },
+      {
+        id: "s-mage",
+        grade: "S",
+        cells: [
+          [0, 0],
+          [0, 1],
+          [0, 2],
+        ],
+      },
       { id: "b-mage", grade: "B", cells: [[0, 0]] },
     ];
     // Only exp and critDamage are allowed; the rest are forbidden
@@ -509,8 +711,23 @@ describe("findOptimalPlacement — advanced", () => {
 
   it("totalPlacedCells equals actual placed cell count across all blocks", () => {
     const blocks: BlockShape[] = [
-      { id: "s-mage", grade: "S", cells: [[0, 0], [0, 1], [0, 2]] },
-      { id: "a-mage", grade: "A", cells: [[0, 0], [1, 0]] },
+      {
+        id: "s-mage",
+        grade: "S",
+        cells: [
+          [0, 0],
+          [0, 1],
+          [0, 2],
+        ],
+      },
+      {
+        id: "a-mage",
+        grade: "A",
+        cells: [
+          [0, 0],
+          [1, 0],
+        ],
+      },
     ];
     const settings: RegionCellSetting[] = [innerSetting("matk", 5)];
     const result = findOptimalPlacement(blocks, settings, DEFAULT_PRIORITY);

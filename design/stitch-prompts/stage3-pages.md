@@ -37,7 +37,7 @@ Header (모든 화면 공통):
 Frame: 1440×900px, desktop
 
 Layout (2-column):
-- Left panel (width ~400px): 
+- Left panel (width ~400px):
   - Tab bar: ["닉네임 검색" active | "직접 입력" inactive]
   - Search input (filled: "루시드서버") + 검색 버튼
   - FilterPills row: [전체 active | B | A | S | SS | SSS]

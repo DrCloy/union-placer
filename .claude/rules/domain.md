@@ -21,16 +21,16 @@ paths:
 
 ## 외부 영역 스탯
 
-| 방향 | 스탯 | 코드 |
-|------|------|------|
-| 1시 | 획득 경험치 | `exp` |
-| 2시 | 크리티컬 확률 | `critRate` |
-| 4시 | 보스 데미지 | `bossDamage` |
-| 5시 | 일반 데미지 | `normalDamage` |
-| 7시 | 버프 지속시간 | `buffDuration` |
-| 8시 | 방어율 무시 | `ignoreDefense` |
-| 10시 | 크리티컬 데미지 | `critDamage` |
-| 11시 | 상태이상 내성 | `statusResist` |
+| 방향 | 스탯            | 코드            |
+| ---- | --------------- | --------------- |
+| 1시  | 획득 경험치     | `exp`           |
+| 2시  | 크리티컬 확률   | `critRate`      |
+| 4시  | 보스 데미지     | `bossDamage`    |
+| 5시  | 일반 데미지     | `normalDamage`  |
+| 7시  | 버프 지속시간   | `buffDuration`  |
+| 8시  | 방어율 무시     | `ignoreDefense` |
+| 10시 | 크리티컬 데미지 | `critDamage`    |
+| 11시 | 상태이상 내성   | `statusResist`  |
 
 ## 내부 영역 스탯
 
@@ -38,13 +38,13 @@ paths:
 
 ## 직업별 유효 스탯
 
-| 직업군 | 유효 스탯 |
-|--------|----------|
-| 전사 | atk, str, dex |
+| 직업군 | 유효 스탯      |
+| ------ | -------------- |
+| 전사   | atk, str, dex  |
 | 마법사 | matk, int, luk |
-| 궁수 | atk, dex, str |
-| 도적 | atk, luk, dex |
-| 해적 | atk, str, dex |
+| 궁수   | atk, dex, str  |
+| 도적   | atk, luk, dex  |
+| 해적   | atk, str, dex  |
 
 특수: 데몬어벤져(atk,hp,str), 제논(atk,str,dex,luk), 듀얼블레이드(atk,luk,str,dex), 섀도어(atk,luk,str,dex), 카데나(atk,luk,str,dex)
 

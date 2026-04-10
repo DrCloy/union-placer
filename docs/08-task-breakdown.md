@@ -72,7 +72,7 @@ Phase 2 (constants/)
 | 3-9  | 결과 평가       | `src/lib/algorithm/search.ts`    | `isOptimal`, `isBetterResult`                                                       |
 | 3-10 | 알고리즘 인덱스 | `src/lib/algorithm/index.ts`     | public API export                                                                   |
 
-**완료 조건:** `npm run check` 통과, 단위 테스트(선택) 작성
+**완료 조건:** `npm run check` 통과, 테스트 환경/실행 체계 점검 기준 문서화
 
 ---
 
@@ -168,6 +168,18 @@ Phase 2 (constants/)
 
 ---
 
+## Phase 5~8 실행 고정 규칙 (Preflight 반영)
+
+- Phase 5: `src/store/index.ts`는 `blockStore`, `settingsStore`, `resultStore` 합성 export 규칙을 유지한다.
+- Phase 6: Worker 메시지 계약은 `progress`, `best`, `complete`, `error`, `cancelled`를 기준으로 고정한다.
+- Phase 6: `usePlacementWorker`는 start/stop/cleanup 수명주기와 취소 흐름을 명시적으로 유지한다.
+- Phase 7: Stitch 산출물은 참고 문서로만 사용하고, 실제 구현 기준은 Storybook을 우선한다.
+- Phase 7: 스토어/훅 연결 포인트는 App step 전환 기준으로 고정한다.
+- Phase 5~7 공통 게이트: `npm run check` 통과, import 레이어 위반 없음, 컴포넌트당 하나의 파일 유지.
+- Phase 8 게이트: `npm run build` 통과, Vercel 배포 검증 완료.
+
+---
+
 ## 운영 태스크 — 스타일 정비 (반복 수행)
 
 기능 PR의 리뷰/수정이 완료되고 충돌이 없을 때 수행한다.
@@ -188,7 +200,7 @@ Phase 2 (constants/)
 ## 검토 체크리스트 (Phase 1~8 공통)
 
 ```
-□ npm run check 통과 (typecheck + lint)
+□ npm run check 통과 (typecheck + lint + format check)
 □ import 레이어 위반 없음
 □ any 타입 없음
 □ 명명 규칙 준수 (.claude/rules/naming.md)
