@@ -106,6 +106,25 @@ describe("fetchUnionInfo", () => {
     expect(fetchHeaderValue(options.headers, "x-api-key")).toBe("test-key");
   });
 
+  it("does not set x-api-key header when api key trims to empty string", async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: vi.fn().mockResolvedValue(SUCCESS_RESPONSE),
+    } as unknown as Response);
+
+    await fetchUnionInfo("  Maple Hero  ", "   ");
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, options] = fetchMock.mock.calls[0] as [string, RequestInit];
+
+    const requestUrl = new URL(url, "https://example.test");
+    expect(requestUrl.searchParams.get("nickname")).toBe("Maple Hero");
+
+    expect(fetchHeaderValue(options.headers, "x-api-key")).toBeNull();
+  });
+
   it("returns API object error message on non-ok response", async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockResolvedValue({
