@@ -7,6 +7,7 @@ import {
   countCellsInRegion,
   createEmptyState,
   createResult,
+  getAdjacentEmptyCells,
   getRegionAt,
   isConnected,
   isForbiddenRegion,
@@ -166,6 +167,20 @@ describe("canPlace", () => {
     const state = createEmptyState(1);
     expect(canPlace(state.occupied, singleCell, [-1, 0], allSettings)).toBe(false);
   });
+
+  it("rejects multi-cell variant when any cell is out of bounds", () => {
+    const state = createEmptyState(1);
+    const twoCellsHorizontal: BlockVariant = {
+      cells: [
+        [0, 0],
+        [0, 1],
+      ],
+      rotation: 0,
+      flipped: false,
+    };
+
+    expect(canPlace(state.occupied, twoCellsHorizontal, [0, 21], allSettings)).toBe(false);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -190,6 +205,11 @@ describe("isConnected", () => {
 
   it("L-shape (3 cells) is connected", () => {
     expect(isConnected(new Set(["0,0", "1,0", "1,1"]))).toBe(true);
+  });
+
+  it("multiple islands are not connected", () => {
+    const occupied = new Set(["0,0", "0,1", "5,5", "5,6", "10,10"]);
+    expect(isConnected(occupied)).toBe(false);
   });
 });
 
@@ -270,5 +290,49 @@ describe("createResult", () => {
     const state = createEmptyState(0);
     const result = createResult(state, settings);
     expect(result.stats.totalTargetCells).toBe(15);
+  });
+
+  it("success=false when both allowed and forbidden outer cells are placed", () => {
+    const forbiddenStat = getRegionAt(1, 12);
+    expect(forbiddenStat).not.toBeNull();
+
+    const occupied = new Set(["1,12", "9,10"]);
+    const settings: RegionCellSetting[] = [
+      { region: forbiddenStat as OuterStat, targetCells: 0, maxCells: 40, isOuter: true },
+      { region: "matk", targetCells: 1, maxCells: 15, isOuter: false },
+    ];
+    const state = {
+      occupied,
+      placements: [],
+      remainingBlocks: [],
+      placedCells: 2,
+    };
+
+    const result = createResult(state, settings);
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("getAdjacentEmptyCells", () => {
+  it("returns unique adjacent cells without duplicates", () => {
+    const occupied = new Set(["10,10", "10,11"]);
+    const result = getAdjacentEmptyCells(occupied);
+    const keys = result.map(([row, col]) => `${row},${col}`);
+
+    expect(new Set(keys).size).toBe(keys.length);
+    expect(keys).toContain("10,9");
+    expect(keys).toContain("9,10");
+    expect(keys).toContain("11,10");
+    expect(keys).toContain("9,11");
+    expect(keys).toContain("11,11");
+    expect(keys).toContain("10,12");
+  });
+
+  it("keeps only in-bounds adjacent cells at board corner", () => {
+    const occupied = new Set(["0,0"]);
+    const result = getAdjacentEmptyCells(occupied);
+    const keys = result.map(([row, col]) => `${row},${col}`).sort();
+
+    expect(keys).toEqual(["0,1", "1,0"]);
   });
 });

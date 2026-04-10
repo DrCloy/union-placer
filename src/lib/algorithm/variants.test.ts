@@ -29,6 +29,49 @@ describe("transformCells", () => {
     const cells: [number, number][] = [[1, 2]];
     expect(transformCells(cells, 0, true)).toEqual([[1, -2]]);
   });
+
+  it("rotation 90 applied four times returns original coordinates", () => {
+    const cells: [number, number][] = [
+      [0, 0],
+      [1, 2],
+      [-2, 1],
+    ];
+
+    const r90 = transformCells(cells, 90, false);
+    const r180 = transformCells(r90, 90, false);
+    const r270 = transformCells(r180, 90, false);
+    const r360 = transformCells(r270, 90, false);
+
+    expect(r360).toEqual(cells);
+  });
+
+  it("double flip returns original coordinates", () => {
+    const cells: [number, number][] = [
+      [0, 0],
+      [1, -2],
+      [-1, 3],
+    ];
+
+    const flipped = transformCells(cells, 0, true);
+    const flippedTwice = transformCells(flipped, 0, true);
+
+    expect(flippedTwice).toEqual(cells);
+  });
+
+  it("flip-rotate composition can be inverted back to original", () => {
+    const cells: [number, number][] = [
+      [0, 0],
+      [1, 0],
+      [1, 2],
+      [-1, 1],
+    ];
+
+    const transformed = transformCells(cells, 90, true);
+    const invertedRotation = transformCells(transformed, 270, false);
+    const restored = transformCells(invertedRotation, 0, true);
+
+    expect(restored).toEqual(cells);
+  });
 });
 
 describe("deduplicateVariants", () => {
@@ -74,5 +117,38 @@ describe("generateVariants", () => {
       ],
     };
     expect(generateVariants(shape).length).toBeLessThanOrEqual(8);
+  });
+
+  it("symmetric square shape stays deduplicated and stable", () => {
+    const shape: BlockShape = {
+      id: "ss-warrior",
+      grade: "SS",
+      cells: [
+        [0, 0],
+        [0, 1],
+        [1, 0],
+        [1, 1],
+      ],
+    };
+
+    const first = generateVariants(shape);
+    const second = generateVariants(shape);
+
+    const toCellSignatureSet = (variants: typeof first): Set<string> => {
+      const signatures = variants.map((variant) =>
+        [...variant.cells]
+          .sort(([leftRow, leftCol], [rightRow, rightCol]) => {
+            if (leftRow !== rightRow) return leftRow - rightRow;
+            return leftCol - rightCol;
+          })
+          .map(([row, col]) => `${row},${col}`)
+          .join("|"),
+      );
+      return new Set(signatures);
+    };
+
+    expect(first).toHaveLength(4);
+    expect(second).toHaveLength(4);
+    expect(toCellSignatureSet(second)).toEqual(toCellSignatureSet(first));
   });
 });
