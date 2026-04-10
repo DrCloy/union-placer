@@ -563,7 +563,7 @@ describe("findOptimalPlacement — advanced", () => {
     if (result === null) return;
 
     // Forbidden regions must be empty
-    const forbidden = [
+    const forbidden: OuterStat[] = [
       "critDamage",
       "normalDamage",
       "critRate",
@@ -600,7 +600,7 @@ describe("findOptimalPlacement — advanced", () => {
     if (result === null) return;
 
     // All cells must avoid forbidden outer regions
-    const forbidden = [
+    const forbidden: OuterStat[] = [
       "bossDamage",
       "ignoreDefense",
       "exp",
