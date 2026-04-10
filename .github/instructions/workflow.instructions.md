@@ -25,11 +25,14 @@ applyTo: "**"
 제목: `feat: implement phase N — short description`
 
 본문:
+
 ```markdown
 ## 작업 내용
+
 - 태스크 목록
 
 ## 체크리스트
+
 - [ ] npm run check 통과
 - [ ] import 레이어 위반 없음
 - [ ] any 타입 없음
@@ -42,6 +45,7 @@ applyTo: "**"
 
 코드 리뷰는 CodeRabbit AI (coderabbitai)가 자동 수행합니다.
 설정: `.coderabbit.yaml`
+
 - 레이어별 import 규칙 자동 감지
 - `any` 타입 감지
 - 컴포넌트 파일 규칙, API 보안 점검

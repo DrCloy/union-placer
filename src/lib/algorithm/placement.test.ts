@@ -113,7 +113,6 @@ describe("placeBlock", () => {
     expect(newState.remainingBlocks).toEqual([1, 2]);
   });
 
-
   it("records the placement with correct shapeId and origin", () => {
     const state = createEmptyState(1);
     const newState = placeBlock(state, 0, "common-a", variant, [9, 10]);

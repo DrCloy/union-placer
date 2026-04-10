@@ -94,7 +94,7 @@ import { BLOCK_SHAPE_BY_ID } from "@/constants/blocks";
 ## Checklist (코드 생성 후 반드시 확인)
 
 ```
-□ npm run check 통과 (typecheck + lint)
+□ npm run check 통과 (typecheck + lint + format check)
 □ import 레이어 위반 없음
 □ any 타입 없음
 □ 컴포넌트당 하나의 파일

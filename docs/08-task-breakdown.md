@@ -72,7 +72,7 @@ Phase 2 (constants/)
 | 3-9  | 결과 평가       | `src/lib/algorithm/search.ts`    | `isOptimal`, `isBetterResult`                                                       |
 | 3-10 | 알고리즘 인덱스 | `src/lib/algorithm/index.ts`     | public API export                                                                   |
 
-**완료 조건:** `npm run check` 통과, 단위 테스트(선택) 작성
+**완료 조건:** `npm run check` 통과, 테스트 환경/실행 체계 점검 기준 문서화
 
 ---
 
@@ -188,7 +188,7 @@ Phase 2 (constants/)
 ## 검토 체크리스트 (Phase 1~8 공통)
 
 ```
-□ npm run check 통과 (typecheck + lint)
+□ npm run check 통과 (typecheck + lint + format check)
 □ import 레이어 위반 없음
 □ any 타입 없음
 □ 명명 규칙 준수 (.claude/rules/naming.md)

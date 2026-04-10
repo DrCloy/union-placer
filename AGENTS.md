@@ -20,8 +20,14 @@ npm run typecheck
 # 린트
 npm run lint
 
-# 타입 체크 + 린트 (작업 완료 전 필수)
+# 포맷 적용
+npm run format
+
+# 타입 체크 + 린트 + 포맷 검사 (작업 완료 전 필수)
 npm run check
+
+# 테스트 실행
+npm run test
 ```
 
 ## Tech stack
@@ -88,6 +94,7 @@ Phase 시작
 ```
 
 규칙:
+
 - `main` 직접 커밋 금지
 - PR 없이 merge 금지
 - 사용자 Approve 없이 merge 금지
@@ -98,7 +105,7 @@ Phase 시작
 ## Agent checklist (작업 완료 전 필수)
 
 ```
-□ npm run check 통과 (typecheck + lint)
+□ npm run check 통과 (typecheck + lint + format check)
 □ import 레이어 위반 없음
 □ any 타입 없음
 □ 명명 규칙 준수 → .github/instructions/naming.instructions.md
@@ -110,14 +117,14 @@ Phase 시작
 
 상세 기획/설계 문서는 `docs/` 참고:
 
-| 문서               | 설명            |
-| ------------------ | --------------- |
-| 00-plan.md         | 마스터 계획     |
-| 02-requirements.md | 요구사항 정의   |
-| 03-feature-spec.md | 기능 명세       |
-| 05-data-model.md   | 데이터 모델     |
-| 06-algorithm.md    | 배치 알고리즘   |
-| 07-architecture.md | 시스템 아키텍처 |
+| 문서                 | 설명                  |
+| -------------------- | --------------------- |
+| 00-plan.md           | 마스터 계획           |
+| 02-requirements.md   | 요구사항 정의         |
+| 03-feature-spec.md   | 기능 명세             |
+| 05-data-model.md     | 데이터 모델           |
+| 06-algorithm.md      | 배치 알고리즘         |
+| 07-architecture.md   | 시스템 아키텍처       |
 | 08-task-breakdown.md | Phase 1~8 태스크 분해 |
 
 ## Instructions

@@ -9,7 +9,9 @@ npm run dev       # 개발 서버
 npm run build     # 프로덕션 빌드
 npm run typecheck # TypeScript 타입 검사
 npm run lint      # ESLint
-npm run check     # typecheck + lint (작업 완료 전 필수)
+npm run format    # Prettier 전체 포맷 적용
+npm run check     # typecheck + lint + format check (작업 완료 전 필수)
+npm run test      # Vitest 테스트 실행
 ```
 
 ## Stack

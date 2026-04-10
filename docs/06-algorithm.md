@@ -75,7 +75,11 @@ function generateVariants(shape: BlockShape): BlockVariant[] {
   return deduplicateVariants(variants);
 }
 
-function transformCells(cells: [number, number][], rotation: 0 | 90 | 180 | 270, flipped: boolean): [number, number][] {
+function transformCells(
+  cells: [number, number][],
+  rotation: 0 | 90 | 180 | 270,
+  flipped: boolean,
+): [number, number][] {
   let result = cells;
 
   // 반전 (y축 기준)
@@ -110,7 +114,12 @@ function deduplicateVariants(variants: BlockVariant[]): BlockVariant[] {
 ### 3.2 배치 가능 여부 검사
 
 ```typescript
-function canPlace(board: Board, variant: BlockVariant, position: [number, number], regionSettings: RegionCellSetting[]): boolean {
+function canPlace(
+  board: Board,
+  variant: BlockVariant,
+  position: [number, number],
+  regionSettings: RegionCellSetting[],
+): boolean {
   const absoluteCells = variant.cells.map(([dx, dy]) => [position[0] + dx, position[1] + dy]);
 
   return absoluteCells.every(
@@ -170,7 +179,10 @@ function isConnected(board: Board): boolean {
 ### 3.4 영역별 배치 현황 계산
 
 ```typescript
-function calculateRegionStats(board: Board, regionSettings: RegionCellSetting[]): RegionPlacementStat[] {
+function calculateRegionStats(
+  board: Board,
+  regionSettings: RegionCellSetting[],
+): RegionPlacementStat[] {
   return regionSettings.map((setting) => {
     const placedCells = countCellsInRegion(board, setting.region);
     return {
@@ -189,7 +201,12 @@ function calculateRegionStats(board: Board, regionSettings: RegionCellSetting[])
 백트래킹 전에 빠른 초기 해를 만들어 가지치기 기준값으로 사용한다.
 
 ```typescript
-function buildGreedySolution(blocks: BlockShape[], allVariants: BlockVariant[][], regionSettings: RegionCellSetting[], priority: Priority): PlacementResult | null {
+function buildGreedySolution(
+  blocks: BlockShape[],
+  allVariants: BlockVariant[][],
+  regionSettings: RegionCellSetting[],
+  priority: Priority,
+): PlacementResult | null {
   const state: SearchState = {
     board: createEmptyBoard(),
     placements: [],
@@ -206,15 +223,32 @@ function buildGreedySolution(blocks: BlockShape[], allVariants: BlockVariant[][]
     [10, 11],
   ];
 
-  const firstPlacement = findBestPlacement(state, allVariants, regionSettings, priority, centerPositions);
+  const firstPlacement = findBestPlacement(
+    state,
+    allVariants,
+    regionSettings,
+    priority,
+    centerPositions,
+  );
   if (!firstPlacement) return null;
 
-  let currentState = placeBlock(state, firstPlacement.blockIdx, firstPlacement.variant, firstPlacement.pos);
+  let currentState = placeBlock(
+    state,
+    firstPlacement.blockIdx,
+    firstPlacement.variant,
+    firstPlacement.pos,
+  );
 
   // 나머지 블록: 매 단계 가장 점수 높은 배치 선택
   while (currentState.remainingBlocks.length > 0) {
     const positions = getAdjacentPositions(currentState.board, regionSettings, priority);
-    const placement = findBestPlacement(currentState, allVariants, regionSettings, priority, positions);
+    const placement = findBestPlacement(
+      currentState,
+      allVariants,
+      regionSettings,
+      priority,
+      positions,
+    );
     if (!placement) break; // 더 이상 배치 불가
 
     currentState = placeBlock(currentState, placement.blockIdx, placement.variant, placement.pos);
@@ -255,7 +289,13 @@ function findBestPlacement(
 }
 
 // 배치 점수 계산: 0순위 충족 > 높은 우선순위 영역 > 총 칸 수
-function scorePlacement(variant: BlockVariant, pos: [number, number], state: SearchState, regionSettings: RegionCellSetting[], priority: Priority): number {
+function scorePlacement(
+  variant: BlockVariant,
+  pos: [number, number],
+  state: SearchState,
+  regionSettings: RegionCellSetting[],
+  priority: Priority,
+): number {
   const absoluteCells = variant.cells.map(([dx, dy]) => [pos[0] + dx, pos[1] + dy]);
 
   let score = 0;
@@ -292,7 +332,11 @@ function scorePlacement(variant: BlockVariant, pos: [number, number], state: Sea
 그리디로 초기 해를 구한 뒤 백트래킹으로 더 나은 해를 탐색한다.
 
 ```typescript
-function findOptimalPlacement(blocks: BlockShape[], regionSettings: RegionCellSetting[], priority: Priority): PlacementResult | null {
+function findOptimalPlacement(
+  blocks: BlockShape[],
+  regionSettings: RegionCellSetting[],
+  priority: Priority,
+): PlacementResult | null {
   // 1. 블록별 변형 생성
   const allVariants = blocks.map(generateVariants);
 
@@ -330,7 +374,15 @@ function findOptimalPlacement(blocks: BlockShape[], regionSettings: RegionCellSe
         if (!canPlace(initialState.board, variant, centerPos, regionSettings)) continue;
 
         const newState = placeBlock(initialState, blockIdx, variant, centerPos);
-        const result = searchRecursive(newState, blocks, allVariants, regionSettings, priority, totalTargetCells, bestResult);
+        const result = searchRecursive(
+          newState,
+          blocks,
+          allVariants,
+          regionSettings,
+          priority,
+          totalTargetCells,
+          bestResult,
+        );
 
         if (result && isBetterResult(result, bestResult, priority)) {
           bestResult = result;
@@ -365,7 +417,9 @@ function searchRecursive(
   }
 
   // 가지치기: 남은 블록으로 목표 도달 불가
-  const maxPossibleCells = state.placedCells + state.remainingBlocks.reduce((sum, idx) => sum + blocks[idx].cells.length, 0);
+  const maxPossibleCells =
+    state.placedCells +
+    state.remainingBlocks.reduce((sum, idx) => sum + blocks[idx].cells.length, 0);
   if (maxPossibleCells < totalTargetCells) return null;
 
   // 가지치기: 칸 수 초과 (목표보다 많이 배치됨)
@@ -397,7 +451,15 @@ function searchRecursive(
         // 연결성 검사
         if (!isConnected(newState.board)) continue;
 
-        const result = searchRecursive(newState, blocks, allVariants, regionSettings, priority, totalTargetCells, bestResult);
+        const result = searchRecursive(
+          newState,
+          blocks,
+          allVariants,
+          regionSettings,
+          priority,
+          totalTargetCells,
+          bestResult,
+        );
 
         if (result && isBetterResult(result, bestResult, priority)) {
           bestResult = result;
@@ -433,7 +495,12 @@ function searchRecursive(
 ### 4.2 0순위 충족 가능 여부 검사
 
 ```typescript
-function canSatisfyRequired(state: SearchState, blocks: BlockShape[], regionSettings: RegionCellSetting[], priority: Priority): boolean {
+function canSatisfyRequired(
+  state: SearchState,
+  blocks: BlockShape[],
+  regionSettings: RegionCellSetting[],
+  priority: Priority,
+): boolean {
   const required = priority.custom?.required ?? [];
 
   for (const setting of required) {
@@ -467,7 +534,12 @@ function canImproveBest(
 ): boolean {
   // 0순위 충족 개수: 이미 best가 모두 충족했으면 현재도 그래야 함
   const bestRequired = countSatisfiedRequired(best, priority);
-  const maxReachableRequired = calculateMaxReachableRequired(state, blocks, regionSettings, priority);
+  const maxReachableRequired = calculateMaxReachableRequired(
+    state,
+    blocks,
+    regionSettings,
+    priority,
+  );
   if (maxReachableRequired < bestRequired) return false;
 
   // 남은 블록으로 채울 수 있는 최대 칸 수 기준으로 upper bound 계산
@@ -479,7 +551,12 @@ function canImproveBest(
 ### 4.4 탐색 순서 최적화
 
 ```typescript
-function sortBlocksByPriority(blockIndices: number[], blocks: BlockShape[], allVariants: BlockVariant[][], priority: Priority): number[] {
+function sortBlocksByPriority(
+  blockIndices: number[],
+  blocks: BlockShape[],
+  allVariants: BlockVariant[][],
+  priority: Priority,
+): number[] {
   return [...blockIndices].sort((a, b) => {
     // 1. 큰 블록 우선 (칸 수 많은 것)
     const sizeDiff = blocks[b].cells.length - blocks[a].cells.length;
@@ -494,7 +571,11 @@ function sortBlocksByPriority(blockIndices: number[], blocks: BlockShape[], allV
 ### 4.4 위치 탐색 최적화
 
 ```typescript
-function getAdjacentPositions(board: Board, regionSettings: RegionCellSetting[], priority: Priority): [number, number][] {
+function getAdjacentPositions(
+  board: Board,
+  regionSettings: RegionCellSetting[],
+  priority: Priority,
+): [number, number][] {
   const positions = new Set<string>();
 
   for (const [x, y] of getOccupiedCells(board)) {
@@ -506,7 +587,11 @@ function getAdjacentPositions(board: Board, regionSettings: RegionCellSetting[],
     ] as const) {
       const nx = x + dx;
       const ny = y + dy;
-      if (isInBounds(nx, ny) && !isOccupied(board, nx, ny) && !isForbiddenRegion(nx, ny, regionSettings)) {
+      if (
+        isInBounds(nx, ny) &&
+        !isOccupied(board, nx, ny) &&
+        !isForbiddenRegion(nx, ny, regionSettings)
+      ) {
         positions.add(`${nx},${ny}`);
       }
     }
@@ -549,7 +634,11 @@ function getBoardHash(state: SearchState): string {
 ### 5.1 최적해 판정
 
 ```typescript
-function isOptimal(result: PlacementResult, priority: Priority, regionSettings: RegionCellSetting[]): boolean {
+function isOptimal(
+  result: PlacementResult,
+  priority: Priority,
+  regionSettings: RegionCellSetting[],
+): boolean {
   // 1. 0순위 영역 100% 충족
   const required = priority.custom?.required ?? [];
   for (const setting of required) {
@@ -578,7 +667,11 @@ function isOptimal(result: PlacementResult, priority: Priority, regionSettings: 
 ### 5.2 결과 비교
 
 ```typescript
-function isBetterResult(a: PlacementResult, b: PlacementResult | null, priority: Priority): boolean {
+function isBetterResult(
+  a: PlacementResult,
+  b: PlacementResult | null,
+  priority: Priority,
+): boolean {
   if (!b) return true;
 
   // 1. 0순위 충족 개수 비교
@@ -619,7 +712,10 @@ class PlacementSearcher {
   private onProgress?: (progress: number) => void;
   private onBestFound?: (result: PlacementResult) => void;
 
-  constructor(callbacks: { onProgress?: (progress: number) => void; onBestFound?: (result: PlacementResult) => void }) {
+  constructor(callbacks: {
+    onProgress?: (progress: number) => void;
+    onBestFound?: (result: PlacementResult) => void;
+  }) {
     this.onProgress = callbacks.onProgress;
     this.onBestFound = callbacks.onBestFound;
   }
@@ -629,7 +725,11 @@ class PlacementSearcher {
   }
 
   // checkAbort()와 updateBest()는 searchRecursive에 콜백으로 전달
-  search(blocks: BlockShape[], regionSettings: RegionCellSetting[], priority: Priority): PlacementResult | null {
+  search(
+    blocks: BlockShape[],
+    regionSettings: RegionCellSetting[],
+    priority: Priority,
+  ): PlacementResult | null {
     this.aborted = false;
     this.currentBestResult = null;
 

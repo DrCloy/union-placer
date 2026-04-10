@@ -40,7 +40,7 @@ ESLint가 위반 시 에러로 강제합니다. 코드 생성 후 `npm run check
 ## Checklist (작업 완료 전 필수)
 
 ```
-□ npm run check 통과 (typecheck + lint)
+□ npm run check 통과 (typecheck + lint + format check)
 □ import 레이어 위반 없음
 □ any 타입 없음
 □ 명명 규칙 준수 → .github/instructions/naming.instructions.md

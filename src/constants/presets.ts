@@ -1,8 +1,17 @@
-import type { CustomPriority, OuterRegionCellSetting, OuterStat, PresetType, Priority } from "@/types/placement";
+import type {
+  CustomPriority,
+  OuterRegionCellSetting,
+  OuterStat,
+  PresetType,
+  Priority,
+} from "@/types/placement";
 
 const OUTER_MAX_CELLS = 40;
 
-function createOuterRegionCellSetting(region: OuterStat, targetCells: number): OuterRegionCellSetting {
+function createOuterRegionCellSetting(
+  region: OuterStat,
+  targetCells: number,
+): OuterRegionCellSetting {
   return {
     region,
     targetCells,
@@ -13,12 +22,18 @@ function createOuterRegionCellSetting(region: OuterStat, targetCells: number): O
 
 const HUNTING_CUSTOM_PRIORITY: CustomPriority = {
   required: [createOuterRegionCellSetting("exp", 40)],
-  priorities: [[createOuterRegionCellSetting("critDamage", 40)], [createOuterRegionCellSetting("normalDamage", 40)]],
+  priorities: [
+    [createOuterRegionCellSetting("critDamage", 40)],
+    [createOuterRegionCellSetting("normalDamage", 40)],
+  ],
 };
 
 const BOSS_CUSTOM_PRIORITY: CustomPriority = {
   required: [createOuterRegionCellSetting("critDamage", 40)],
-  priorities: [[createOuterRegionCellSetting("bossDamage", 40)], [createOuterRegionCellSetting("ignoreDefense", 40)]],
+  priorities: [
+    [createOuterRegionCellSetting("bossDamage", 40)],
+    [createOuterRegionCellSetting("ignoreDefense", 40)],
+  ],
 };
 
 export const PRESET_PRIORITY: Readonly<Record<PresetType, Priority>> = {

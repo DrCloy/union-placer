@@ -1,6 +1,11 @@
 import type { BlockVariant } from "@/types/block";
 import type { RegionStat } from "@/types/placement";
-import type { BlockPlacement, PlacementResult, RegionCellSetting, RegionPlacementStat } from "@/types/placement";
+import type {
+  BlockPlacement,
+  PlacementResult,
+  RegionCellSetting,
+  RegionPlacementStat,
+} from "@/types/placement";
 import { INNER_REGIONS, OUTER_REGIONS } from "@/constants/board";
 
 // ---------------------------------------------------------------------------
@@ -105,7 +110,11 @@ export function countEmptyCellsInRegion(occupied: Set<string>, region: RegionSta
 // Placement check logic (3-3)
 // ---------------------------------------------------------------------------
 
-export function isForbiddenRegion(row: number, col: number, regionSettings: RegionCellSetting[]): boolean {
+export function isForbiddenRegion(
+  row: number,
+  col: number,
+  regionSettings: RegionCellSetting[],
+): boolean {
   const info = CELL_REGION_INFO.get(`${row},${col}`);
   // Inner regions are never forbidden (allowed for connectivity).
   // Unknown cells (shouldn't happen with a complete board) are not forbidden.
@@ -252,7 +261,12 @@ export function getAdjacentEmptyCells(occupied: Set<string>): [number, number][]
     const row = Number(parts[0]);
     const col = Number(parts[1]);
 
-    for (const [dRow, dCol] of [[0, 1], [0, -1], [1, 0], [-1, 0]] as const) {
+    for (const [dRow, dCol] of [
+      [0, 1],
+      [0, -1],
+      [1, 0],
+      [-1, 0],
+    ] as const) {
       const nRow = row + dRow;
       const nCol = col + dCol;
       const neighborKey = `${nRow},${nCol}`;
@@ -268,7 +282,10 @@ export function getAdjacentEmptyCells(occupied: Set<string>): [number, number][]
   });
 }
 
-export function createResult(state: AlgoState, regionSettings: RegionCellSetting[]): PlacementResult {
+export function createResult(
+  state: AlgoState,
+  regionSettings: RegionCellSetting[],
+): PlacementResult {
   const regionStats = calculateRegionStats(state.occupied, regionSettings);
   const totalTargetCells = regionSettings.reduce((sum, s) => sum + s.targetCells, 0);
   const hasForbiddenViolations = regionStats.some((s) => s.isForbidden && s.placedCells > 0);
