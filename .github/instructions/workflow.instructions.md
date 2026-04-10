@@ -27,22 +27,7 @@ applyTo: "**"
 
 제목: `feat: implement phase N — short description`
 
-본문:
-
-```markdown
-## 작업 내용
-
-- 태스크 목록
-
-## 체크리스트
-
-- [ ] npm run check 통과
-- [ ] import 레이어 위반 없음
-- [ ] any 타입 없음
-- [ ] 명명 규칙 준수
-- [ ] 도메인 용어 준수
-- [ ] 컴포넌트당 하나의 파일
-```
+본문/체크리스트는 `.github/pull_request_template.md`를 단일 소스로 사용한다.
 
 ## CodeRabbit
 
