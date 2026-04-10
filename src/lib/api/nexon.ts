@@ -20,8 +20,14 @@ function parseApiError(status: number, body: unknown): NexonApiError {
       const message =
         "message" in apiError && typeof apiError.message === "string" ? apiError.message : "";
 
-      if (message.length > 0) {
-        return new NexonApiError(status, code, code.length > 0 ? `${code}: ${message}` : message);
+      if (code.length > 0 || message.length > 0) {
+        const detail =
+          code.length > 0 && message.length > 0
+            ? `${code}: ${message}`
+            : code.length > 0
+              ? code
+              : message;
+        return new NexonApiError(status, code, detail);
       }
     }
 

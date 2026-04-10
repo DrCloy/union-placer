@@ -43,11 +43,24 @@ const CELL_REGION_INFO: Map<CellKey, CellRegionInfo> = new Map();
 /** Maps each RegionStat to the Set of cell keys belonging to it. */
 const REGION_CELLS: Map<RegionStat, Set<CellKey>> = new Map();
 
+function setCellRegionInfo(key: CellKey, stat: RegionStat, isOuter: boolean): void {
+  const existingInfo = CELL_REGION_INFO.get(key);
+  if (existingInfo !== undefined) {
+    const currentScope = isOuter ? "OUTER" : "INNER";
+    const existingScope = existingInfo.isOuter ? "OUTER" : "INNER";
+    throw new Error(
+      `Duplicate CellKey ${key} in ${currentScope} region ${stat}; already assigned to ${existingScope} region ${existingInfo.stat}`,
+    );
+  }
+
+  CELL_REGION_INFO.set(key, { stat, isOuter });
+}
+
 for (const region of INNER_REGIONS) {
   const cellSet = new Set<CellKey>();
   for (const [row, col] of region.cells) {
     const key = toCellKey(row, col);
-    CELL_REGION_INFO.set(key, { stat: region.stat, isOuter: false });
+    setCellRegionInfo(key, region.stat, false);
     cellSet.add(key);
   }
   REGION_CELLS.set(region.stat, cellSet);
@@ -57,7 +70,7 @@ for (const region of OUTER_REGIONS) {
   const cellSet = new Set<CellKey>();
   for (const [row, col] of region.cells) {
     const key = toCellKey(row, col);
-    CELL_REGION_INFO.set(key, { stat: region.stat, isOuter: true });
+    setCellRegionInfo(key, region.stat, true);
     cellSet.add(key);
   }
   REGION_CELLS.set(region.stat, cellSet);

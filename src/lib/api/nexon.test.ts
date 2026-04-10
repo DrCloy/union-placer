@@ -146,6 +146,25 @@ describe("fetchUnionInfo", () => {
     expect((error as NexonApiError).message).toBe("OPENAPI0001: invalid request");
   });
 
+  it("returns API code when error message is missing", async () => {
+    const fetchMock = vi.mocked(fetch);
+    fetchMock.mockResolvedValue({
+      ok: false,
+      status: 400,
+      json: vi.fn().mockResolvedValue({
+        error: {
+          name: "OPENAPI0002",
+        },
+      }),
+    } as unknown as Response);
+
+    const error = await fetchUnionInfo("maple").catch((caughtError: unknown) => caughtError);
+    expect(error).toBeInstanceOf(NexonApiError);
+    expect((error as NexonApiError).status).toBe(400);
+    expect((error as NexonApiError).code).toBe("OPENAPI0002");
+    expect((error as NexonApiError).message).toBe("OPENAPI0002");
+  });
+
   it("returns API string error message on non-ok response", async () => {
     const fetchMock = vi.mocked(fetch);
     fetchMock.mockResolvedValue({

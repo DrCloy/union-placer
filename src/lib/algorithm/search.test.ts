@@ -95,7 +95,7 @@ function assertValid(
 
   // Placed cells must not overlap
   const allCells = result.placements.flatMap((p) => p.cells);
-  const keys = allCells.map(([r, c]) => `${r},${c}`);
+  const keys = allCells.map(([row, col]) => `${row},${col}`);
   expect(new Set(keys).size).toBe(keys.length);
 
   // All cells must be connected
@@ -587,7 +587,7 @@ describe("findOptimalPlacement — advanced", () => {
     if (result === null) return;
 
     const allCells = result.placements.flatMap((p) => p.cells);
-    const keys = allCells.map(([r, c]) => `${r},${c}`);
+    const keys = allCells.map(([row, col]) => `${row},${col}`);
     expect(new Set(keys).size).toBe(keys.length); // no overlaps
     expect(isConnected(new Set(keys as CellKey[]))).toBe(true);
   });
@@ -612,7 +612,9 @@ describe("findOptimalPlacement — advanced", () => {
     if (result === null) return;
     const allCells = result.placements.flatMap((p) => p.cells);
     expect(allCells).toHaveLength(4);
-    expect(isConnected(new Set(allCells.map(([r, c]) => `${r},${c}`) as CellKey[]))).toBe(true);
+    expect(isConnected(new Set(allCells.map(([row, col]) => `${row},${col}`) as CellKey[]))).toBe(
+      true,
+    );
   });
 
   // ── Priority preset adherence ───────────────────────────────────────────
