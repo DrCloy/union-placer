@@ -55,11 +55,11 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
 
   setRegionCells: (region, cells) =>
     set((state) => ({
-      regionSettings: state.regionSettings.map((setting) =>
-        setting.region === region
-          ? { ...setting, targetCells: Math.max(0, Math.min(cells, setting.maxCells)) }
-          : setting,
-      ),
+      regionSettings: state.regionSettings.map((setting) => {
+        if (setting.region !== region) return setting;
+        const safeCells = Number.isFinite(cells) ? Math.floor(cells) : 0;
+        return { ...setting, targetCells: Math.max(0, Math.min(safeCells, setting.maxCells)) };
+      }),
       validationResult: null,
     })),
 
