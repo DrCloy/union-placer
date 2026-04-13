@@ -12,18 +12,18 @@ import { DEFAULT_PRIORITY } from "@/constants/presets";
 
 const INITIAL_REGION_SETTINGS: RegionCellSetting[] = [
   ...OUTER_REGIONS.map(
-    (r): OuterRegionCellSetting => ({
-      region: r.stat,
+    (outerRegion): OuterRegionCellSetting => ({
+      region: outerRegion.stat,
       targetCells: 0,
-      maxCells: 40,
+      maxCells: outerRegion.maxCells,
       isOuter: true,
     }),
   ),
   ...INNER_REGIONS.map(
-    (r): InnerRegionCellSetting => ({
-      region: r.stat,
+    (innerRegion): InnerRegionCellSetting => ({
+      region: innerRegion.stat,
       targetCells: 0,
-      maxCells: 15,
+      maxCells: innerRegion.maxCells,
       isOuter: false,
     }),
   ),
@@ -55,8 +55,10 @@ export const useSettingsStore = create<SettingsStore>((set) => ({
 
   setRegionCells: (region, cells) =>
     set((state) => ({
-      regionSettings: state.regionSettings.map((s) =>
-        s.region === region ? { ...s, targetCells: cells } : s,
+      regionSettings: state.regionSettings.map((setting) =>
+        setting.region === region
+          ? { ...setting, targetCells: Math.max(0, Math.min(cells, setting.maxCells)) }
+          : setting,
       ),
       validationResult: null,
     })),

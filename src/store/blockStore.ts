@@ -36,7 +36,7 @@ function computeBlockSummary(
 ): BlockSummary {
   if (inputMethod === "nickname") {
     return fetchBlockSummaryFromCharacters(
-      characters.filter((c) => selectedCharacterIds.has(c.id)),
+      characters.filter((character) => selectedCharacterIds.has(character.id)),
     );
   }
   return fetchBlockSummaryFromManualBlocks(manualBlocks);
@@ -68,7 +68,7 @@ export const useBlockStore = create<BlockStore>((set) => ({
   setApiKey: (key) => set({ apiKey: key }),
 
   setCharacters: (characters) => {
-    const selectedCharacterIds = new Set(characters.map((c) => c.id));
+    const selectedCharacterIds = new Set(characters.map((character) => character.id));
     set((state) => ({
       characters,
       selectedCharacterIds,
