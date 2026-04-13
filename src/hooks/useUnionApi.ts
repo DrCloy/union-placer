@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Character } from "@/types/character";
 import type { ApiError, NetworkError } from "@/types/error";
 import type { NexonUnionBlock } from "@/types/nexon";
@@ -51,8 +51,10 @@ export function useUnionApi(): {
 } {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<ApiError | NetworkError | null>(null);
+  const latestRequestIdRef = useRef(0);
 
   const fetchUnionInfo = async (nickname: string): Promise<void> => {
+    const requestId = ++latestRequestIdRef.current;
     setIsLoading(true);
     setError(null);
 
@@ -60,8 +62,11 @@ export function useUnionApi(): {
       const apiKey = useBlockStore.getState().apiKey;
       const response = await fetchUnionInfoApi(nickname, apiKey ?? undefined);
       const characters = toCharacters(response.raider.union_block);
-      useBlockStore.getState().setCharacters(characters);
+      if (requestId === latestRequestIdRef.current) {
+        useBlockStore.getState().setCharacters(characters);
+      }
     } catch (caught) {
+      if (requestId !== latestRequestIdRef.current) return;
       if (caught instanceof NexonApiError) {
         setError({
           kind: "api",
@@ -75,7 +80,9 @@ export function useUnionApi(): {
         setError({ kind: "network", message: String(caught) });
       }
     } finally {
-      setIsLoading(false);
+      if (requestId === latestRequestIdRef.current) {
+        setIsLoading(false);
+      }
     }
   };
 
