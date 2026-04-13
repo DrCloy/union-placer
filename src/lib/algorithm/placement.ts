@@ -19,6 +19,11 @@ export function toCellKey(row: number, col: number): CellKey {
   return `${row},${col}` as CellKey;
 }
 
+export function fromCellKey(key: CellKey): [number, number] {
+  const commaIdx = key.indexOf(",");
+  return [Number(key.slice(0, commaIdx)), Number(key.slice(commaIdx + 1))];
+}
+
 /**
  * Lightweight immutable-style placement state used exclusively inside the algorithm.
  * `occupied` is a Set of CellKey values representing placed cells.
@@ -99,10 +104,7 @@ export function getRegionAt(row: number, col: number): RegionStat | null {
 }
 
 export function getOccupiedCells(occupied: Set<CellKey>): [number, number][] {
-  return Array.from(occupied).map((key) => {
-    const parts = key.split(",");
-    return [Number(parts[0]), Number(parts[1])] as [number, number];
-  });
+  return Array.from(occupied).map(fromCellKey);
 }
 
 export function countCellsInRegion(occupied: Set<CellKey>, region: RegionStat): number {
@@ -210,9 +212,7 @@ export function isConnected(occupied: Set<CellKey>): boolean {
     if (visited.has(key)) continue;
     visited.add(key);
 
-    const parts = key.split(",");
-    const row = Number(parts[0]);
-    const col = Number(parts[1]);
+    const [row, col] = fromCellKey(key);
 
     for (const [dRow, dCol] of [
       [0, 1],
@@ -268,17 +268,15 @@ export function computeEffectiveTargetCells(
 }
 
 /**
- * Returns all empty, in-bounds, non-forbidden cells adjacent to any occupied cell.
- * Unlike `getAdjacentPositions`, this does not filter by forbidden status so it can
- * be used as raw contact candidates for per-variant origin calculation.
+ * Returns all empty, in-bounds cells adjacent to any occupied cell.
+ * Does not filter by forbidden region status — callers are responsible
+ * for further filtering if needed.
  */
 export function getAdjacentEmptyCells(occupied: Set<CellKey>): [number, number][] {
   const candidates = new Set<CellKey>();
 
   for (const key of occupied) {
-    const parts = key.split(",");
-    const row = Number(parts[0]);
-    const col = Number(parts[1]);
+    const [row, col] = fromCellKey(key);
 
     for (const [dRow, dCol] of [
       [0, 1],
@@ -295,10 +293,7 @@ export function getAdjacentEmptyCells(occupied: Set<CellKey>): [number, number][
     }
   }
 
-  return Array.from(candidates).map((key) => {
-    const parts = key.split(",");
-    return [Number(parts[0]), Number(parts[1])] as [number, number];
-  });
+  return Array.from(candidates).map(fromCellKey);
 }
 
 export function createResult(
