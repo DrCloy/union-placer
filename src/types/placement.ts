@@ -79,3 +79,9 @@ export interface SearchState {
   isSearching: boolean;
   progress?: number;
 }
+
+export interface ValidationResult {
+  isValid: boolean;
+  errors: string[];
+  warnings: string[];
+}
