@@ -26,6 +26,7 @@ function toCharacters(blocks: NexonUnionBlock[]): Character[] {
     if (blockShape === undefined) return [];
     return [
       {
+        // index는 flatMap 필터링 전 원본 배열 인덱스 — block_type(닉네임)과 조합해 고유성 보장
         id: `${index}-${block.block_type}`,
         nickname: block.block_type,
         job: block.block_class,
