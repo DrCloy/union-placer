@@ -134,7 +134,7 @@ export function isForbiddenRegion(
   col: number,
   regionSettings: RegionCellSetting[],
 ): boolean {
-  const info = CELL_REGION_INFO.get(`${row},${col}`);
+  const info = CELL_REGION_INFO.get(toCellKey(row, col));
   // Inner regions are never forbidden (allowed for connectivity).
   // Unknown cells (shouldn't happen with a complete board) are not forbidden.
   if (info === undefined || !info.isOuter) return false;
