@@ -92,6 +92,16 @@ export function fetchBlockSummaryFromCharacters(characters: readonly Character[]
   };
 }
 
+export function expandBlockSummary(summary: BlockSummary): BlockShape[] {
+  return summary.blocks.flatMap(({ shapeId, count }) => {
+    const hasKey = Object.prototype.hasOwnProperty.call(BLOCK_SHAPE_BY_ID, shapeId);
+    if (!hasKey) return [];
+    const shape = BLOCK_SHAPE_BY_ID[shapeId as keyof typeof BLOCK_SHAPE_BY_ID];
+    if (shape === undefined) return [];
+    return Array<BlockShape>(count).fill(shape);
+  });
+}
+
 export function fetchBlockSummaryFromManualBlocks(
   manualBlocks: readonly BlockCount[],
 ): BlockSummary {

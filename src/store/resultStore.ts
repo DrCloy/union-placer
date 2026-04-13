@@ -1,11 +1,12 @@
 import { create } from "zustand";
+import type { AppError } from "@/types/error";
 import type { PlacementResult } from "@/types/placement";
 
 interface ResultState {
   isSearching: boolean;
   searchProgress: number;
   result: PlacementResult | null;
-  error: string | null;
+  error: AppError | null;
 }
 
 interface ResultActions {
@@ -13,7 +14,7 @@ interface ResultActions {
   stopSearch: () => void;
   setSearchProgress: (progress: number) => void;
   setResult: (result: PlacementResult) => void;
-  setError: (message: string) => void;
+  setError: (error: AppError) => void;
   clearError: () => void;
   reset: () => void;
 }
@@ -38,7 +39,7 @@ export const useResultStore = create<ResultStore>((set) => ({
 
   setResult: (result) => set({ result, isSearching: false }),
 
-  setError: (message) => set({ error: message, isSearching: false }),
+  setError: (error) => set({ error, isSearching: false }),
 
   clearError: () => set({ error: null }),
 
