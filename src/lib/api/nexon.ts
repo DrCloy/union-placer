@@ -1,27 +1,42 @@
 import type { NexonUnionInfoResponse } from "@/types/nexon";
 
-function createApiErrorMessage(status: number, body: unknown): string {
+export class NexonApiError extends Error {
+  readonly status: number;
+  readonly code: string;
+
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.name = "NexonApiError";
+    this.status = status;
+    this.code = code;
+  }
+}
+
+function parseApiError(status: number, body: unknown): NexonApiError {
   if (typeof body === "object" && body !== null && "error" in body) {
     const apiError = (body as { error: unknown }).error;
     if (typeof apiError === "object" && apiError !== null) {
-      const errorName = "name" in apiError ? apiError.name : "";
-      const errorMessage = "message" in apiError ? apiError.message : "";
+      const code = "name" in apiError && typeof apiError.name === "string" ? apiError.name : "";
+      const message =
+        "message" in apiError && typeof apiError.message === "string" ? apiError.message : "";
 
-      if (typeof errorMessage === "string" && errorMessage.length > 0) {
-        if (typeof errorName === "string" && errorName.length > 0) {
-          return `${errorName}: ${errorMessage}`;
-        }
-
-        return errorMessage;
+      if (code.length > 0 || message.length > 0) {
+        const detail =
+          code.length > 0 && message.length > 0
+            ? `${code}: ${message}`
+            : code.length > 0
+              ? code
+              : message;
+        return new NexonApiError(status, code, detail);
       }
     }
 
     if (typeof apiError === "string" && apiError.length > 0) {
-      return apiError;
+      return new NexonApiError(status, "", apiError);
     }
   }
 
-  return `API request failed (${status})`;
+  return new NexonApiError(status, "", `API request failed (${status})`);
 }
 
 export async function fetchUnionInfo(
@@ -32,7 +47,7 @@ export async function fetchUnionInfo(
   const trimmedApiKey = apiKey?.trim();
 
   if (trimmedNickname.length === 0) {
-    throw new Error("Nickname is required");
+    throw new NexonApiError(0, "", "Nickname is required");
   }
 
   const params = new URLSearchParams({ nickname: trimmedNickname });
@@ -48,13 +63,13 @@ export async function fetchUnionInfo(
   });
   if (!response.ok) {
     const responseBody = (await response.json().catch(() => null)) as unknown;
-    throw new Error(createApiErrorMessage(response.status, responseBody));
+    throw parseApiError(response.status, responseBody);
   }
 
   try {
     return (await response.json()) as NexonUnionInfoResponse;
   } catch (parseError) {
     const message = parseError instanceof Error ? parseError.message : String(parseError);
-    throw new Error(`Failed to parse JSON response: ${message}`);
+    throw new NexonApiError(response.status, "", `Failed to parse JSON response: ${message}`);
   }
 }

@@ -6,18 +6,30 @@ import type {
   RegionCellSetting,
   RegionPlacementStat,
 } from "@/types/placement";
-import { INNER_REGIONS, OUTER_REGIONS } from "@/constants/board";
+import { BOARD_HEIGHT, BOARD_WIDTH, INNER_REGIONS, OUTER_REGIONS } from "@/constants/board";
 
 // ---------------------------------------------------------------------------
-// Internal board representation
+// CellKey type
 // ---------------------------------------------------------------------------
+
+/** Strongly-typed cell coordinate key in "row,col" format. */
+export type CellKey = `${number},${number}`;
+
+export function toCellKey(row: number, col: number): CellKey {
+  return `${row},${col}` as CellKey;
+}
+
+export function fromCellKey(key: CellKey): [number, number] {
+  const commaIdx = key.indexOf(",");
+  return [Number(key.slice(0, commaIdx)), Number(key.slice(commaIdx + 1))];
+}
 
 /**
  * Lightweight immutable-style placement state used exclusively inside the algorithm.
- * `occupied` is a Set of "row,col" keys representing placed cells.
+ * `occupied` is a Set of CellKey values representing placed cells.
  */
 export interface AlgoState {
-  occupied: Set<string>;
+  occupied: Set<CellKey>;
   placements: BlockPlacement[];
   remainingBlocks: number[]; // indices into the blocks array passed to search
   placedCells: number;
@@ -32,61 +44,70 @@ interface CellRegionInfo {
   isOuter: boolean;
 }
 
-const CELL_REGION_INFO: Map<string, CellRegionInfo> = new Map();
+const CELL_REGION_INFO: Map<CellKey, CellRegionInfo> = new Map();
 /** Maps each RegionStat to the Set of cell keys belonging to it. */
-const REGION_CELLS: Map<RegionStat, Set<string>> = new Map();
+const REGION_CELLS: Map<RegionStat, Set<CellKey>> = new Map();
+
+function setCellRegionInfo(key: CellKey, stat: RegionStat, isOuter: boolean): void {
+  const existingInfo = CELL_REGION_INFO.get(key);
+  if (existingInfo !== undefined) {
+    const currentScope = isOuter ? "OUTER" : "INNER";
+    const existingScope = existingInfo.isOuter ? "OUTER" : "INNER";
+    throw new Error(
+      `Duplicate CellKey ${key} in ${currentScope} region ${stat}; already assigned to ${existingScope} region ${existingInfo.stat}`,
+    );
+  }
+
+  CELL_REGION_INFO.set(key, { stat, isOuter });
+}
 
 for (const region of INNER_REGIONS) {
-  const cellSet = new Set<string>();
+  const cellSet = new Set<CellKey>();
   for (const [row, col] of region.cells) {
-    const key = `${row},${col}`;
-    CELL_REGION_INFO.set(key, { stat: region.stat, isOuter: false });
+    const key = toCellKey(row, col);
+    setCellRegionInfo(key, region.stat, false);
     cellSet.add(key);
+  }
+  if (REGION_CELLS.has(region.stat)) {
+    throw new Error(`Duplicate RegionStat mapping in INNER region ${region.stat}`);
   }
   REGION_CELLS.set(region.stat, cellSet);
 }
 
 for (const region of OUTER_REGIONS) {
-  const cellSet = new Set<string>();
+  const cellSet = new Set<CellKey>();
   for (const [row, col] of region.cells) {
-    const key = `${row},${col}`;
-    CELL_REGION_INFO.set(key, { stat: region.stat, isOuter: true });
+    const key = toCellKey(row, col);
+    setCellRegionInfo(key, region.stat, true);
     cellSet.add(key);
+  }
+  if (REGION_CELLS.has(region.stat)) {
+    throw new Error(`Duplicate RegionStat mapping in OUTER region ${region.stat}`);
   }
   REGION_CELLS.set(region.stat, cellSet);
 }
-
-// ---------------------------------------------------------------------------
-// Board constants
-// ---------------------------------------------------------------------------
-
-const BOARD_ROWS = 20;
-const BOARD_COLS = 22;
 
 // ---------------------------------------------------------------------------
 // Board utility functions (3-2)
 // ---------------------------------------------------------------------------
 
 export function isInBounds(row: number, col: number): boolean {
-  return row >= 0 && row < BOARD_ROWS && col >= 0 && col < BOARD_COLS;
+  return row >= 0 && row < BOARD_HEIGHT && col >= 0 && col < BOARD_WIDTH;
 }
 
-export function isOccupied(occupied: Set<string>, row: number, col: number): boolean {
-  return occupied.has(`${row},${col}`);
+export function isOccupied(occupied: Set<CellKey>, row: number, col: number): boolean {
+  return occupied.has(toCellKey(row, col));
 }
 
 export function getRegionAt(row: number, col: number): RegionStat | null {
-  return CELL_REGION_INFO.get(`${row},${col}`)?.stat ?? null;
+  return CELL_REGION_INFO.get(toCellKey(row, col))?.stat ?? null;
 }
 
-export function getOccupiedCells(occupied: Set<string>): [number, number][] {
-  return Array.from(occupied).map((key) => {
-    const parts = key.split(",");
-    return [Number(parts[0]), Number(parts[1])] as [number, number];
-  });
+export function getOccupiedCells(occupied: Set<CellKey>): [number, number][] {
+  return Array.from(occupied).map(fromCellKey);
 }
 
-export function countCellsInRegion(occupied: Set<string>, region: RegionStat): number {
+export function countCellsInRegion(occupied: Set<CellKey>, region: RegionStat): number {
   const regionCells = REGION_CELLS.get(region);
   if (regionCells === undefined) return 0;
   let count = 0;
@@ -96,7 +117,7 @@ export function countCellsInRegion(occupied: Set<string>, region: RegionStat): n
   return count;
 }
 
-export function countEmptyCellsInRegion(occupied: Set<string>, region: RegionStat): number {
+export function countEmptyCellsInRegion(occupied: Set<CellKey>, region: RegionStat): number {
   const regionCells = REGION_CELLS.get(region);
   if (regionCells === undefined) return 0;
   let count = 0;
@@ -115,7 +136,7 @@ export function isForbiddenRegion(
   col: number,
   regionSettings: RegionCellSetting[],
 ): boolean {
-  const info = CELL_REGION_INFO.get(`${row},${col}`);
+  const info = CELL_REGION_INFO.get(toCellKey(row, col));
   // Inner regions are never forbidden (allowed for connectivity).
   // Unknown cells (shouldn't happen with a complete board) are not forbidden.
   if (info === undefined || !info.isOuter) return false;
@@ -126,7 +147,7 @@ export function isForbiddenRegion(
 }
 
 export function canPlace(
-  occupied: Set<string>,
+  occupied: Set<CellKey>,
   variant: BlockVariant,
   position: [number, number],
   regionSettings: RegionCellSetting[],
@@ -155,7 +176,7 @@ export function placeBlock(
 
   const newOccupied = new Set(state.occupied);
   for (const [row, col] of cells) {
-    newOccupied.add(`${row},${col}`);
+    newOccupied.add(toCellKey(row, col));
   }
 
   const placement: BlockPlacement = {
@@ -179,21 +200,19 @@ export function placeBlock(
 // Connectivity check (3-4)
 // ---------------------------------------------------------------------------
 
-export function isConnected(occupied: Set<string>): boolean {
+export function isConnected(occupied: Set<CellKey>): boolean {
   if (occupied.size === 0) return true;
 
-  const start = occupied.values().next().value as string;
-  const visited = new Set<string>();
-  const queue: string[] = [start];
+  const start = occupied.values().next().value as CellKey;
+  const visited = new Set<CellKey>();
+  const queue: CellKey[] = [start];
 
   while (queue.length > 0) {
     const key = queue.shift()!;
     if (visited.has(key)) continue;
     visited.add(key);
 
-    const parts = key.split(",");
-    const row = Number(parts[0]);
-    const col = Number(parts[1]);
+    const [row, col] = fromCellKey(key);
 
     for (const [dRow, dCol] of [
       [0, 1],
@@ -201,7 +220,7 @@ export function isConnected(occupied: Set<string>): boolean {
       [1, 0],
       [-1, 0],
     ] as const) {
-      const neighborKey = `${row + dRow},${col + dCol}`;
+      const neighborKey = toCellKey(row + dRow, col + dCol);
       if (occupied.has(neighborKey) && !visited.has(neighborKey)) {
         queue.push(neighborKey);
       }
@@ -216,7 +235,7 @@ export function isConnected(occupied: Set<string>): boolean {
 // ---------------------------------------------------------------------------
 
 export function calculateRegionStats(
-  occupied: Set<string>,
+  occupied: Set<CellKey>,
   regionSettings: RegionCellSetting[],
 ): RegionPlacementStat[] {
   return regionSettings.map((setting) => {
@@ -236,7 +255,7 @@ export function calculateRegionStats(
  * min(placedCells, targetCells) to avoid over-counting when a region is over-filled.
  */
 export function computeEffectiveTargetCells(
-  occupied: Set<string>,
+  occupied: Set<CellKey>,
   regionSettings: RegionCellSetting[],
 ): number {
   let total = 0;
@@ -249,17 +268,15 @@ export function computeEffectiveTargetCells(
 }
 
 /**
- * Returns all empty, in-bounds, non-forbidden cells adjacent to any occupied cell.
- * Unlike `getAdjacentPositions`, this does not filter by forbidden status so it can
- * be used as raw contact candidates for per-variant origin calculation.
+ * Returns all empty, in-bounds cells adjacent to any occupied cell.
+ * Does not filter by forbidden region status — callers are responsible
+ * for further filtering if needed.
  */
-export function getAdjacentEmptyCells(occupied: Set<string>): [number, number][] {
-  const candidates = new Set<string>();
+export function getAdjacentEmptyCells(occupied: Set<CellKey>): [number, number][] {
+  const candidates = new Set<CellKey>();
 
   for (const key of occupied) {
-    const parts = key.split(",");
-    const row = Number(parts[0]);
-    const col = Number(parts[1]);
+    const [row, col] = fromCellKey(key);
 
     for (const [dRow, dCol] of [
       [0, 1],
@@ -269,17 +286,14 @@ export function getAdjacentEmptyCells(occupied: Set<string>): [number, number][]
     ] as const) {
       const nRow = row + dRow;
       const nCol = col + dCol;
-      const neighborKey = `${nRow},${nCol}`;
+      const neighborKey = toCellKey(nRow, nCol);
       if (isInBounds(nRow, nCol) && !occupied.has(neighborKey)) {
         candidates.add(neighborKey);
       }
     }
   }
 
-  return Array.from(candidates).map((key) => {
-    const parts = key.split(",");
-    return [Number(parts[0]), Number(parts[1])] as [number, number];
-  });
+  return Array.from(candidates).map(fromCellKey);
 }
 
 export function createResult(

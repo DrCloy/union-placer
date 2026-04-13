@@ -17,6 +17,7 @@ coverage
 .env
 .env.*
 !.env.example
+.mcp.json
 
 # Editor directories and files
 .vscode/*

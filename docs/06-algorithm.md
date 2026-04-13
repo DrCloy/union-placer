@@ -115,7 +115,7 @@ function deduplicateVariants(variants: BlockVariant[]): BlockVariant[] {
 
 ```typescript
 function canPlace(
-  board: Board,
+  occupied: Set<CellKey>,
   variant: BlockVariant,
   position: [number, number],
   regionSettings: RegionCellSetting[],
@@ -125,54 +125,53 @@ function canPlace(
   return absoluteCells.every(
     ([x, y]) =>
       isInBounds(x, y) && // 판 범위 내
-      !isOccupied(board, x, y) && // 빈 칸
+      !isOccupied(occupied, x, y) && // 빈 칸
       !isForbiddenRegion(x, y, regionSettings), // 미지정 외부 영역 아님
   );
 }
 
 function isForbiddenRegion(x: number, y: number, regionSettings: RegionCellSetting[]): boolean {
-  const region = getRegionAt(x, y);
-  const setting = regionSettings.find((s) => s.region === region);
+  const info = CELL_REGION_INFO.get(`${x},${y}`);
+  // 내부 영역은 연결용으로 허용
+  if (info === undefined || !info.isOuter) return false;
 
-  // 미지정 외부 영역 = 배치 금지
-  // 미지정 내부 영역 = 연결용 허용 (금지 아님)
-  return (setting?.targetCells === 0 && setting?.isOuter) ?? false;
+  const setting = regionSettings.find((s) => s.region === info.stat);
+  // 외부 영역 중 설정 없거나 targetCells = 0이면 금지
+  return setting === undefined || setting.targetCells === 0;
 }
 ```
 
 ### 3.3 연결성 검사
 
 ```typescript
-function isConnected(board: Board): boolean {
-  const occupiedCells = getOccupiedCells(board);
-  if (occupiedCells.length === 0) return true;
+function isConnected(occupied: Set<CellKey>): boolean {
+  if (occupied.size === 0) return true;
 
   // BFS로 연결성 확인
-  const visited = new Set<string>();
-  const queue = [occupiedCells[0]];
+  const start = occupied.values().next().value as CellKey;
+  const visited = new Set<CellKey>();
+  const queue: CellKey[] = [start];
 
   while (queue.length > 0) {
-    const [x, y] = queue.shift()!;
-    const key = `${x},${y}`;
-
+    const key = queue.shift()!;
     if (visited.has(key)) continue;
     visited.add(key);
 
+    const [x, y] = key.split(",").map(Number);
     for (const [dx, dy] of [
       [0, 1],
       [0, -1],
       [1, 0],
       [-1, 0],
     ] as const) {
-      const nx = x + dx;
-      const ny = y + dy;
-      if (isOccupied(board, nx, ny)) {
-        queue.push([nx, ny]);
+      const neighborKey = `${x + dx},${y + dy}` as CellKey;
+      if (occupied.has(neighborKey) && !visited.has(neighborKey)) {
+        queue.push(neighborKey);
       }
     }
   }
 
-  return visited.size === occupiedCells.length;
+  return visited.size === occupied.size;
 }
 ```
 
@@ -180,17 +179,17 @@ function isConnected(board: Board): boolean {
 
 ```typescript
 function calculateRegionStats(
-  board: Board,
+  occupied: Set<CellKey>,
   regionSettings: RegionCellSetting[],
 ): RegionPlacementStat[] {
   return regionSettings.map((setting) => {
-    const placedCells = countCellsInRegion(board, setting.region);
+    const placedCells = countCellsInRegion(occupied, setting.region);
     return {
       region: setting.region,
       targetCells: setting.targetCells,
       placedCells,
       isSatisfied: placedCells >= setting.targetCells,
-      isForbidden: setting.targetCells === 0,
+      isForbidden: setting.targetCells === 0 && setting.isOuter,
     };
   });
 }

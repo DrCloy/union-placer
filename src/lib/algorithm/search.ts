@@ -11,6 +11,7 @@ import { PRESET_CUSTOM_PRIORITY } from "@/constants/presets";
 import { generateVariants } from "./variants";
 import {
   type AlgoState,
+  type CellKey,
   canPlace,
   computeEffectiveTargetCells,
   countCellsInRegion,
@@ -21,6 +22,7 @@ import {
   getRegionAt,
   isConnected,
   placeBlock,
+  toCellKey,
 } from "./placement";
 
 // ---------------------------------------------------------------------------
@@ -101,10 +103,10 @@ function scorePlacement(
 function getOriginCandidatesForVariant(
   adjEmpty: [number, number][],
   variant: BlockVariant,
-  occupied: Set<string>,
+  occupied: Set<CellKey>,
   regionSettings: RegionCellSetting[],
 ): [number, number][] {
-  const seen = new Set<string>();
+  const seen = new Set<CellKey>();
   const candidates: [number, number][] = [];
 
   for (const [adjRow, adjCol] of adjEmpty) {
@@ -113,7 +115,7 @@ function getOriginCandidatesForVariant(
       // then variant cell [dRow, dCol] lands on [adjRow, adjCol]
       const originRow = adjRow - dRow;
       const originCol = adjCol - dCol;
-      const key = `${originRow},${originCol}`;
+      const key = toCellKey(originRow, originCol);
       if (seen.has(key)) continue;
       seen.add(key);
       if (canPlace(occupied, variant, [originRow, originCol], regionSettings)) {

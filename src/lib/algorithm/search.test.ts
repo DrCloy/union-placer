@@ -10,12 +10,16 @@ import type {
   RegionPlacementStat,
 } from "@/types/placement";
 import { DEFAULT_PRIORITY, PRESET_CUSTOM_PRIORITY, PRESET_PRIORITY } from "@/constants/presets";
-import { isConnected } from "@/lib/algorithm/placement";
+import { type CellKey, isConnected } from "@/lib/algorithm/placement";
 import { findOptimalPlacement, isBetterResult, isOptimal } from "@/lib/algorithm/search";
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+function makeCellSet(...keys: readonly string[]): Set<CellKey> {
+  return new Set(keys as CellKey[]);
+}
 
 function outerSetting(region: OuterStat, targetCells: number): RegionCellSetting {
   return { region, targetCells, maxCells: 40, isOuter: true };
@@ -91,11 +95,11 @@ function assertValid(
 
   // Placed cells must not overlap
   const allCells = result.placements.flatMap((p) => p.cells);
-  const keys = allCells.map(([r, c]) => `${r},${c}`);
+  const keys = allCells.map(([row, col]) => `${row},${col}`);
   expect(new Set(keys).size).toBe(keys.length);
 
   // All cells must be connected
-  expect(isConnected(new Set(keys))).toBe(true);
+  expect(isConnected(new Set(keys as CellKey[]))).toBe(true);
 
   // No cells in forbidden outer regions
   for (const s of settings) {
@@ -105,9 +109,12 @@ function assertValid(
     }
   }
 
-  // At least one placed cell must lie in the central 4 cells (domain rule: connectivity anchor)
-  const CENTER_KEYS = new Set(["9,10", "9,11", "10,10", "10,11"]);
-  const hasCenter = keys.some((key) => CENTER_KEYS.has(key));
+  // At least one block placement origin must lie in the central 4 cells (domain rule).
+  const CENTER_KEYS: Set<CellKey> = makeCellSet("9,10", "9,11", "10,10", "10,11");
+  const hasCenter = result.placements.some((placement) => {
+    const originKey = `${placement.placementOrigin[0]},${placement.placementOrigin[1]}` as CellKey;
+    return CENTER_KEYS.has(originKey);
+  });
   expect(hasCenter).toBe(true);
 
   // regionStats.isSatisfied matches actual placedCells
@@ -583,9 +590,9 @@ describe("findOptimalPlacement — advanced", () => {
     if (result === null) return;
 
     const allCells = result.placements.flatMap((p) => p.cells);
-    const keys = allCells.map(([r, c]) => `${r},${c}`);
+    const keys = allCells.map(([row, col]) => `${row},${col}`);
     expect(new Set(keys).size).toBe(keys.length); // no overlaps
-    expect(isConnected(new Set(keys))).toBe(true);
+    expect(isConnected(new Set(keys as CellKey[]))).toBe(true);
   });
 
   it("SS block (4 cells) is placed connected and within bounds", () => {
@@ -608,7 +615,9 @@ describe("findOptimalPlacement — advanced", () => {
     if (result === null) return;
     const allCells = result.placements.flatMap((p) => p.cells);
     expect(allCells).toHaveLength(4);
-    expect(isConnected(new Set(allCells.map(([r, c]) => `${r},${c}`)))).toBe(true);
+    expect(isConnected(new Set(allCells.map(([row, col]) => `${row},${col}`) as CellKey[]))).toBe(
+      true,
+    );
   });
 
   // ── Priority preset adherence ───────────────────────────────────────────
