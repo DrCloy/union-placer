@@ -44,7 +44,7 @@ src/
 └── components/   ← React 컴포넌트 (← 전부 가능)
 ```
 
-**Web Worker** (`workers/placementWorker.ts`) — 배치 알고리즘(`findOptimalPlacement`)을 메인 스레드에서 오프로드. `start` / `cancel` 메시지로 제어, `progress` / `best` / `complete` / `error` / `cancelled` 메시지로 응답.
+**Web Worker** (`workers/placementWorker.ts`) — 배치 알고리즘(`findOptimalPlacement`)을 메인 스레드에서 오프로드. `start` / `stop` 메시지로 제어, `progress` / `best` / `complete` / `error` / `cancelled` 메시지로 응답.
 
 **Zustand stores** (`store/`)
 
