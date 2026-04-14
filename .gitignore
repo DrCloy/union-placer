@@ -36,5 +36,8 @@ coverage
 # Reference images (design references, not source code)
 references/
 
+# Operations logs (local only)
+docs/operations/
+
 *storybook.log
 storybook-static

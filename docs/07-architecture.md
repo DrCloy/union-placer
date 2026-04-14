@@ -43,21 +43,46 @@
 ```text
 union-placer/
 ├── .github/
-│   └── copilot-instructions.md
-├── api/                             # Vercel Serverless Functions
+│   ├── instructions/                # Copilot 규칙 (applyTo 자동 로드)
+│   │   ├── coding-style.instructions.md
+│   │   ├── naming.instructions.md
+│   │   ├── domain.instructions.md
+│   │   ├── commit.instructions.md
+│   │   └── workflow.instructions.md
+│   ├── workflows/
+│   │   └── check.yml                # CI: typecheck + lint + test
+│   ├── copilot-instructions.md
+│   └── pull_request_template.md
+├── .githooks/
+│   └── pre-commit                   # npm run check 자동 실행
+├── .storybook/                      # Storybook 설정
+│   ├── main.ts
+│   └── preview.ts
+├── api/                             # Vercel Serverless Functions (Phase 8)
 │   └── nexon/
 │       └── union.ts                 # 유니온 정보 조회 프록시
+├── design/                          # 디자인 문서
+│   ├── plan.md
+│   ├── tokens.md
+│   └── components.md
 ├── docs/                            # 기획 문서
+│   ├── 00-plan.md
 │   ├── 01-project-overview.md
 │   ├── 02-requirements.md
 │   ├── 03-feature-spec.md
 │   ├── 04-user-flow.md
 │   ├── 05-data-model.md
 │   ├── 06-algorithm.md
-│   └── 07-architecture.md
+│   ├── 07-architecture.md
+│   ├── 08-task-breakdown.md
+│   ├── 09-api-contract.md
+│   └── 99-terms-of-service.md
 ├── public/
+│   ├── favicon.svg
+│   └── icons.svg
 ├── src/
-│   ├── components/                  # UI 컴포넌트
+│   ├── assets/                      # 정적 에셋
+│   ├── components/                  # UI 컴포넌트 (Phase 7)
 │   │   ├── common/                  # 공통 컴포넌트
 │   │   │   ├── Button.tsx
 │   │   │   ├── Input.tsx
@@ -79,45 +104,53 @@ union-placer/
 │   │       ├── Header.tsx
 │   │       ├── StepIndicator.tsx
 │   │       └── Container.tsx
+│   ├── constants/                   # 상수
+│   │   ├── blocks.ts                # 블록 모양 데이터
+│   │   ├── board.ts                 # 유니온 판 영역 데이터
+│   │   ├── errorMessages.ts         # 에러 메시지
+│   │   ├── jobs.ts                  # 직업군 데이터
+│   │   └── presets.ts               # 우선순위 프리셋
 │   ├── hooks/                       # 커스텀 훅
 │   │   ├── useUnionApi.ts
 │   │   └── usePlacementWorker.ts
+│   ├── lib/                         # 유틸리티
+│   │   ├── api/
+│   │   │   └── nexon.ts             # fetchUnionInfo (Nexon API 호출)
+│   │   ├── algorithm/               # 배치 알고리즘
+│   │   │   ├── index.ts
+│   │   │   ├── variants.ts          # 블록 변형 생성
+│   │   │   ├── placement.ts         # 배치 로직
+│   │   │   └── search.ts            # 탐색 로직
+│   │   ├── blocks.ts                # 블록 데이터 및 변환
+│   │   ├── board.ts                 # 유니온 판 데이터
+│   │   └── errors.ts                # 에러 생성 헬퍼
+│   ├── stories/                     # Storybook 스토리
 │   ├── store/                       # Zustand 스토어
-│   │   ├── index.ts
+│   │   ├── index.ts                 # barrel export
 │   │   ├── blockStore.ts
 │   │   ├── settingsStore.ts
 │   │   └── resultStore.ts
-│   ├── workers/                     # Web Worker
-│   │   └── placementWorker.ts
-│   ├── lib/                         # 유틸리티
-│   │   ├── api/                     # API 호출
-│   │   │   ├── nexon.ts             # fetchUnionInfo
-│   │   │   └── types.ts             # Nexon API 응답 타입
-│   │   ├── blocks.ts                # 블록 데이터 및 변환
-│   │   ├── board.ts                 # 유니온 판 데이터
-│   │   └── algorithm/               # 배치 알고리즘
-│   │       ├── index.ts
-│   │       ├── variants.ts          # 블록 변형 생성
-│   │       ├── placement.ts         # 배치 로직
-│   │       └── search.ts            # 탐색 로직
 │   ├── types/                       # 타입 정의
 │   │   ├── block.ts
 │   │   ├── board.ts
 │   │   ├── character.ts
+│   │   ├── error.ts                 # AppError union 타입
+│   │   ├── nexon.ts                 # Nexon API 응답 타입
 │   │   └── placement.ts
-│   ├── constants/                   # 상수
-│   │   ├── blocks.ts                # 블록 모양 데이터
-│   │   ├── board.ts                 # 유니온 판 영역 데이터
-│   │   └── presets.ts               # 프리셋 데이터
+│   ├── workers/                     # Web Worker
+│   │   └── placementWorker.ts
+│   ├── App.css
 │   ├── App.tsx
-│   ├── main.tsx
-│   └── index.css
+│   ├── index.css
+│   └── main.tsx
 ├── AGENTS.md
+├── eslint.config.js                 # import 레이어 규칙 강제
+├── index.html
 ├── package.json
-├── tsconfig.json
-├── tailwind.config.js
+├── tsconfig.app.json
+├── tsconfig.node.json
 ├── vite.config.ts
-└── vercel.json
+└── vercel.json                      # Vercel 배포 설정 (Phase 8)
 ```
 
 ---
@@ -210,50 +243,65 @@ interface ResultStepProps {
 
 ### 4.1 스토어 구조
 
+스토어는 3개로 분리되어 있으며 `store/index.ts`는 barrel export만 담당합니다.
+
 ```typescript
-// store/index.ts
-interface UnionPlacerStore {
-  // Block Store
+// store/blockStore.ts — 블록 입력 관련
+interface BlockState {
   inputMethod: "nickname" | "manual";
-  apiKey: string | null; // 사용자 입력 API Key (선택)
+  apiKey: string | null;
   characters: Character[];
-  selectedCharacters: Character[];
+  selectedCharacterIds: Set<string>; // Character[] 아님
   manualBlocks: BlockCount[];
-  blockSummary: BlockSummary;
-
-  // Settings Store
-  regionSettings: RegionCellSetting[];
-  priority: Priority;
-  validationResult: ValidationResult | null;
-
-  // Result Store
-  isSearching: boolean;
-  searchProgress: number;
-  result: PlacementResult | null;
-  error: string | null;
-
-  // Actions
+  blockSummary: BlockSummary; // 파생값 (자동 계산)
+}
+interface BlockActions {
   setInputMethod: (method: "nickname" | "manual") => void;
   setApiKey: (key: string | null) => void;
   setCharacters: (characters: Character[]) => void;
   toggleCharacter: (characterId: string) => void;
   setManualBlocks: (blocks: BlockCount[]) => void;
+  reset: () => void;
+}
+
+// store/settingsStore.ts — 설정 관련
+interface SettingsState {
+  regionSettings: RegionCellSetting[];
+  priority: Priority;
+  validationResult: ValidationResult | null;
+}
+interface SettingsActions {
   setRegionCells: (region: RegionStat, cells: number) => void;
   setPriority: (priority: Priority) => void;
+  setValidationResult: (result: ValidationResult | null) => void;
+  reset: () => void;
+}
+
+// store/resultStore.ts — 결과 관련
+interface ResultState {
+  isSearching: boolean;
+  searchProgress: number;
+  result: PlacementResult | null;
+  error: AppError | null; // string | null 아님
+}
+interface ResultActions {
   startSearch: () => void;
   stopSearch: () => void;
+  setSearchProgress: (progress: number) => void;
   setResult: (result: PlacementResult) => void;
+  setError: (error: AppError) => void;
+  clearError: () => void;
   reset: () => void;
 }
 ```
 
-### 4.2 스토어 분리
+### 4.2 스토어 접근
 
 ```typescript
-// store/blockStore.ts - 블록 입력 관련
-// store/settingsStore.ts - 설정 관련
-// store/resultStore.ts - 결과 관련
-// store/index.ts - 통합 스토어
+// store/index.ts — barrel export만
+export { useBlockStore } from "./blockStore";
+export { useSettingsStore } from "./settingsStore";
+export { useResultStore } from "./resultStore";
 ```
 
 ---
@@ -313,15 +361,21 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 ### 5.2 프론트엔드 API 호출
 
 ```typescript
-// src/lib/api.ts
-export async function fetchUnionInfo(nickname: string, apiKey?: string) {
-  const params = new URLSearchParams({ nickname });
-  if (apiKey) params.append("apiKey", apiKey);
+// src/lib/api/nexon.ts
+export async function fetchUnionInfo(
+  nickname: string,
+  apiKey: string,
+): Promise<NexonUnionInfoResponse> {
+  const res = await fetch(`/api/nexon/union?nickname=${encodeURIComponent(nickname)}`, {
+    headers: { "x-api-key": apiKey }, // query param 아님 — 보안상 헤더로 전달
+  });
 
-  const res = await fetch(`/api/nexon/union?${params}`);
-  if (!res.ok) throw new Error("API 조회 실패");
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new NexonApiError(res.status, body.error?.name ?? "UNKNOWN", body.error?.message ?? "");
+  }
 
-  return res.json();
+  return res.json() as Promise<NexonUnionInfoResponse>;
 }
 ```
 
@@ -333,23 +387,50 @@ export async function fetchUnionInfo(nickname: string, apiKey?: string) {
 
 ```typescript
 // src/workers/placementWorker.ts
-import { findOptimalPlacement } from "../lib/algorithm";
 
-self.onmessage = (e: MessageEvent) => {
-  const { blocks, regionSettings, priority } = e.data;
+// 메시지 계약
+type WorkerInboundMessage =
+  | { type: "start"; blocks: BlockShape[]; regionSettings: RegionCellSetting[]; priority: Priority }
+  | { type: "cancel" };
 
-  const searcher = new PlacementSearcher({
-    onProgress: (progress) => {
-      self.postMessage({ type: "progress", progress });
-    },
-    onBestFound: (result) => {
-      self.postMessage({ type: "best", result });
-    },
-  });
+type WorkerOutboundMessage =
+  | { type: "progress"; progress: number }
+  | { type: "best"; result: PlacementResult }
+  | { type: "complete"; result: PlacementResult | null }
+  | { type: "error"; error: SearchError }
+  | { type: "cancelled" };
 
-  const result = searcher.search(blocks, regionSettings, priority);
+// 취소 플래그
+let isCancelled = false;
 
-  self.postMessage({ type: "complete", result });
+self.onmessage = (event: MessageEvent<WorkerInboundMessage>) => {
+  if (message.type === "cancel") {
+    isCancelled = true;
+    return;
+  }
+
+  if (message.type === "start") {
+    isCancelled = false;
+    const { blocks, regionSettings, priority } = message;
+
+    try {
+      const result = findOptimalPlacement(blocks, regionSettings, priority, {
+        shouldAbort: () => isCancelled,
+        onBetterResult: (betterResult) => {
+          self.postMessage({ type: "progress", progress });
+          self.postMessage({ type: "best", result: betterResult });
+        },
+      });
+
+      if (isCancelled) {
+        self.postMessage({ type: "cancelled" });
+      } else {
+        self.postMessage({ type: "complete", result });
+      }
+    } catch (error) {
+      self.postMessage({ type: "error", error: { kind: "search", message: String(error) } });
+    }
+  }
 };
 ```
 
@@ -357,42 +438,54 @@ self.onmessage = (e: MessageEvent) => {
 
 ```typescript
 // src/hooks/usePlacementWorker.ts
-export function usePlacementWorker() {
+// 반환값: { startSearch, stopSearch } 만 — 상태는 Zustand resultStore가 관리
+export function usePlacementWorker(): { startSearch: () => void; stopSearch: () => void } {
   const workerRef = useRef<Worker | null>(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [result, setResult] = useState<PlacementResult | null>(null);
 
-  const startSearch = useCallback((params: SearchParams) => {
-    workerRef.current = new Worker(new URL("../workers/placementWorker.ts", import.meta.url), {
+  // Worker는 마운트 시 1회 생성, 언마운트 시 terminate
+  useEffect(() => {
+    const worker = new Worker(new URL("../workers/placementWorker.ts", import.meta.url), {
       type: "module",
     });
 
-    workerRef.current.onmessage = (e) => {
-      switch (e.data.type) {
+    worker.onmessage = (event: MessageEvent<WorkerOutboundMessage>) => {
+      const { setSearchProgress, setResult, setError, stopSearch } = useResultStore.getState();
+      switch (event.data.type) {
         case "progress":
-          setProgress(e.data.progress);
+          setSearchProgress(event.data.progress);
           break;
         case "best":
-          setResult(e.data.result);
+          setResult(event.data.result);
           break;
         case "complete":
-          setResult(e.data.result);
-          setIsSearching(false);
+          /* setResult or setError */ break;
+        case "error":
+          setError(event.data.error);
+          break;
+        case "cancelled":
+          stopSearch();
           break;
       }
     };
 
-    workerRef.current.postMessage(params);
-    setIsSearching(true);
+    workerRef.current = worker;
+    return () => {
+      worker.terminate();
+    };
   }, []);
 
-  const stopSearch = useCallback(() => {
-    workerRef.current?.terminate();
-    setIsSearching(false);
-  }, []);
+  const startSearch = () => {
+    const blocks = expandBlockSummary(useBlockStore.getState().blockSummary);
+    const { regionSettings, priority } = useSettingsStore.getState();
+    useResultStore.getState().startSearch();
+    workerRef.current?.postMessage({ type: "start", blocks, regionSettings, priority });
+  };
 
-  return { isSearching, progress, result, startSearch, stopSearch };
+  const stopSearch = () => {
+    workerRef.current?.postMessage({ type: "cancel" });
+  };
+
+  return { startSearch, stopSearch };
 }
 ```
 
@@ -491,7 +584,7 @@ UnionBoard 시각화
 
 ## 9. 개발 단계별 구현 순서
 
-→ [docs/08-task-breakdown.md](../docs/08-task-breakdown.md) 참조 (Phase 1~8 상세 태스크 분해)
+→ [08-task-breakdown.md](08-task-breakdown.md) 참조 (Phase 1~8 상세 태스크 분해)
 
 ---
 
@@ -516,15 +609,30 @@ UnionBoard 시각화
 ### 10.3 에러 상태 관리
 
 ```typescript
-// store/resultStore.ts
-interface ResultStore {
-  // ...
-  error: {
-    type: "api" | "validation" | "search";
-    message: string;
-    details?: string;
-  } | null;
-  setError: (error: ResultStore["error"]) => void;
+// src/types/error.ts
+type AppError = ApiError | SearchError | NetworkError;
+
+interface ApiError {
+  kind: "api";
+  code: NexonErrorCode | string;
+  status: number;
+  message: string;
+}
+interface SearchError {
+  kind: "search";
+  message: string;
+}
+interface NetworkError {
+  kind: "network";
+  message: string;
+}
+
+// store/resultStore.ts — error 필드
+interface ResultState {
+  error: AppError | null; // kind 필드로 구분 (type 아님)
+}
+interface ResultActions {
+  setError: (error: AppError) => void;
   clearError: () => void;
 }
 ```
