@@ -2,12 +2,19 @@
 
 ## 현재 상태
 
-| Phase                   | 상태      | 다음 할 일            |
-| ----------------------- | --------- | --------------------- |
-| Phase 0 — 하네스 인프라 | ✅ 완료   | —                     |
-| Phase D — 문서 보완     | ✅ 완료   | —                     |
-| Phase UI — 디자인       | ✅ 완료   | —                     |
-| Phase 1~8 — 구현        | ⬜ 미시작 | Phase UI 완료 후 시작 |
+| Phase                     | 상태      | 다음 할 일           |
+| ------------------------- | --------- | -------------------- |
+| Phase 0 — 하네스 인프라   | ✅ 완료   | —                    |
+| Phase D — 문서 보완       | ✅ 완료   | —                    |
+| Phase UI — 디자인         | ✅ 완료   | —                    |
+| Phase 1 — types/          | ✅ 완료   | —                    |
+| Phase 2 — constants/      | ✅ 완료   | —                    |
+| Phase 3 — lib/algorithm/  | ✅ 완료   | —                    |
+| Phase 4 — lib/ 유틸·API   | ✅ 완료   | —                    |
+| Phase 5 — store/          | ✅ 완료   | —                    |
+| Phase 6 — workers/+hooks/ | ✅ 완료   | —                    |
+| Phase 7 — components/     | ⬜ 미시작 | Phase 6 완료 후 시작 |
+| Phase 8 — api/+배포       | ⬜ 미시작 | Phase 4 완료 후 시작 |
 
 **권장 진행 순서:** ~~Phase D~~ → Phase UI → Phase 1~8
 

@@ -31,6 +31,27 @@ npm run dev
 | `npm run test`      | Vitest 테스트 실행              |
 | `npm run preview`   | 빌드 결과 미리보기              |
 
+## Architecture
+
+```
+src/
+├── types/        ← 도메인 타입 (import 없음)
+├── constants/    ← 상수 (← types/)
+├── lib/          ← 유틸·API (← types/, constants/)
+├── workers/      ← Web Worker (← types/, constants/, lib/)
+├── store/        ← Zustand 스토어 (← types/, constants/, lib/)
+├── hooks/        ← React 훅 (← types/, store/, lib/)
+└── components/   ← React 컴포넌트 (← 전부 가능)
+```
+
+**Web Worker** (`workers/placementWorker.ts`) — 배치 알고리즘(`findOptimalPlacement`)을 메인 스레드에서 오프로드. `start` / `cancel` 메시지로 제어, `progress` / `best` / `complete` / `error` / `cancelled` 메시지로 응답.
+
+**Zustand stores** (`store/`)
+
+- `blockStore` — 입력 방식, API key, 캐릭터 목록, 선택된 캐릭터 ID, 수동 블록
+- `settingsStore` — 영역 설정, 우선순위, 검증 결과
+- `resultStore` — 검색 상태, 진행률, 배치 결과, 에러
+
 ## Docs
 
 | 문서                                               | 내용                      |
