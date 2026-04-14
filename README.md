@@ -33,7 +33,7 @@ npm run dev
 
 ## Architecture
 
-```
+```text
 src/
 ├── types/        ← 도메인 타입 (import 없음)
 ├── constants/    ← 상수 (← types/)
